@@ -1168,7 +1168,7 @@ function render(){
       ? "See who has spun the wheel and chosen a name."
       : "Track who has added a wishlist. Select any name to see their profile.";
     $("statusDoneLabel").textContent = isSpinStatus ? "Done spinning" : "Wishlist done";
-    $("statusPendingLabel").textContent = isSpinStatus ? "Not yet spun" : "Not yet";
+    $("statusPendingLabel").textContent = isSpinStatus ? "Not yet done" : "Not yet";
     $("wishlistProgressBar").hidden = isSpinStatus;
     $("count").textContent = isSpinStatus
       ? done + " of " + n + " have spun"

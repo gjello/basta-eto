@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // The Netlify function uses Firebase Admin credentials. Browser clients
+    // must not read or write PINs, wishlists, or private draw results directly.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

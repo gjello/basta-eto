@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomInt, scryptSync, timingSafeEqual } from "node:crypto";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
@@ -26,6 +26,7 @@ const docId = name => encodeURIComponent(name);
 const memberRef = (db, name) => db.collection("members").doc(docId(name));
 const legacyRef = (db, name) => db.collection("wishlists").doc(docId(name));
 const statusRef = db => db.collection("public").doc("status");
+const assignmentHistoryRef = db => db.collection("public").doc("assignmentHistory");
 const validMember = name => MEMBERS.includes(name);
 const validWish = wish => typeof wish === "string" && wish.length <= 10000;
 const hasWish = wish => typeof wish === "string" && wish.trim().length >= 3;
@@ -118,7 +119,7 @@ function matchesLegacyPin(name, pin, hash) {
   return timingSafeEqual(actual, expected);
 }
 
-function assignmentFor(index) {
+function fixedAssignmentMap() {
   const rng = seed => () => {
     seed |= 0;
     seed = seed + 0x6D2B79F5 | 0;
@@ -132,7 +133,78 @@ function assignmentFor(index) {
     const j = Math.floor(random() * (i + 1));
     [order[i], order[j]] = [order[j], order[i]];
   }
-  return order[(order.indexOf(index) + 1) % order.length];
+  return Object.fromEntries(order.map((index, position) => [
+    MEMBERS[index],
+    MEMBERS[order[(position + 1) % order.length]]
+  ]));
+}
+
+function randomAssignmentMap(previousAssignments) {
+  let assignments;
+  do {
+    const order = MEMBERS.map((_, index) => index);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = randomInt(i + 1);
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    assignments = Object.fromEntries(order.map((index, position) => [
+      MEMBERS[index],
+      MEMBERS[order[(position + 1) % order.length]]
+    ]));
+  } while (MEMBERS.some(name => assignments[name] === previousAssignments[name]));
+  return assignments;
+}
+
+function validAssignmentMap(assignments) {
+  return assignments && typeof assignments === "object"
+    && MEMBERS.every(name => MEMBERS.includes(assignments[name]) && assignments[name] !== name)
+    && new Set(MEMBERS.map(name => assignments[name])).size === MEMBERS.length;
+}
+
+async function getAssignments(db) {
+  const ref = statusRef(db);
+  const historyRef = assignmentHistoryRef(db);
+  const existing = await ref.get();
+  const data = existing.exists ? existing.data() : {};
+  if (validAssignmentMap(data.assignments)) return data.assignments;
+
+  const spins = data.spins && typeof data.spins === "object" ? data.spins : {};
+  let hasExistingDraw = MEMBERS.some(name => spins[name] === true);
+  if (!hasExistingDraw) {
+    const records = await Promise.all(MEMBERS.map(async name => {
+      const current = await memberRef(db, name).get();
+      if (current.exists) return current.data().drawDone === true;
+      const legacy = await legacyRef(db, name).get();
+      return legacy.exists && legacy.data().drawDone === true;
+    }));
+    hasExistingDraw = records.some(Boolean);
+  }
+
+  return db.runTransaction(async transaction => {
+    const [snapshot, historySnapshot] = await Promise.all([
+      transaction.get(ref),
+      transaction.get(historyRef)
+    ]);
+    const latest = snapshot.exists ? snapshot.data() : {};
+    if (validAssignmentMap(latest.assignments)) return latest.assignments;
+    const history = historySnapshot.exists ? historySnapshot.data() : {};
+    const previousAssignments = validAssignmentMap(history.assignments)
+      ? history.assignments
+      : fixedAssignmentMap();
+    const assignments = hasExistingDraw
+      ? previousAssignments
+      : randomAssignmentMap(previousAssignments);
+    transaction.set(ref, {
+      ...latest,
+      assignments,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    transaction.set(historyRef, {
+      assignments,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return assignments;
+  });
 }
 
 async function getStatus(db) {
@@ -342,7 +414,8 @@ export async function handler(event) {
       if (!snapshot.exists) return json(404, { error: "Member record not found. Enter your name and PIN again." });
       const data = snapshot.data();
       if (data.drawDone === true) {
-        const recipient = MEMBERS[assignmentFor(MEMBERS.indexOf(member))];
+        const assignments = await getAssignments(db);
+        const recipient = assignments[member];
         const items = await getWishlist(db, recipient);
         return json(200, {
           wish: data.wish || "",
@@ -383,8 +456,8 @@ export async function handler(event) {
       if (!ownSnapshot.exists || !hasWish(ownSnapshot.data().wish)) {
         return json(409, { error: "Save your wishlist before drawing." });
       }
-      const ownIndex = MEMBERS.indexOf(member);
-      const recipient = MEMBERS[assignmentFor(ownIndex)];
+      const assignments = await getAssignments(db);
+      const recipient = assignments[member];
       const recipientItems = await getWishlist(db, recipient);
       if (!hasWish(recipientItems.map(item => item.text).join("\n"))) return json(409, { error: "The recipient wishlist is unavailable." });
       const publicStatusRef = statusRef(db);

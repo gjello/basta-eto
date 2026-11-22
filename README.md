@@ -62,6 +62,10 @@ If the wrong person claims a name, an owner can reset it in **Firestore Database
 
 1. Delete that name's document in the `members` collection.
 2. Delete the same name's old document in the `wishlists` collection, if it exists. Document IDs use URL encoding; for example, `Tita Cheche` is `Tita%20Cheche`.
-3. Delete `public/status`. It is rebuilt from the remaining member records the next time the site loads.
+3. Delete `public/status`. It is rebuilt from the remaining member records the next time the site loads. If anyone has already spun, their existing assignments are preserved. Do not delete `public/assignmentHistory`.
 
 This resets the PIN but also deletes that member's saved wishlist, so they will need to enter it again. Deleting documents in the Firebase console does not require opening up the Firestore rules.
+
+## Reset the whole exchange
+
+The recipient assignments are randomized once per exchange and saved in `public/status`, so everyone gets a different recipient, no one gets themselves, and no one repeats their recipient from the previous exchange. To start a new randomized exchange, delete all documents in `members` and `wishlists`, then delete `public/status`. Keep `public/assignmentHistory`; it remembers the previous assignments so the next round can avoid repeating them. Leaving `public/status` in place keeps the current exchange's assignments.

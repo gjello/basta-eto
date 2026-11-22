@@ -31,7 +31,7 @@ const validWish = wish => typeof wish === "string" && wish.length <= 10000;
 const hasWish = wish => typeof wish === "string" && wish.trim().length >= 3;
 const MAX_WISHLIST_ITEMS = 100;
 const MAX_WISHLIST_PHOTOS = 6;
-const MAX_IMAGE_DATA_LENGTH = 100000;
+const MAX_IMAGE_DATA_LENGTH = 150000;
 const normalizeItems = (items, wish) => Array.isArray(items)
   ? items.filter(item => item && typeof item.text === "string").map(item => ({
     text: item.text,
@@ -272,7 +272,7 @@ async function authenticate(db, name, pin, ip) {
 
 export async function handler(event) {
   try {
-    if (typeof event.body === "string" && event.body.length > 750000) {
+    if (typeof event.body === "string" && event.body.length > 1000000) {
       return json(413, { error: "The request is too large." });
     }
     const db = getDb();

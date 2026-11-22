@@ -281,7 +281,7 @@ canvas{width:100%;height:100%}
       <div class="wish-item-card">
         <label for="wishItem1">Wishlist item 1 · Required</label>
         <input id="wishItem1" class="wish-item" type="text" maxlength="160" placeholder="Add one gift idea" required>
-        <label class="wish-photo-label" for="wishPhoto1">Photo (optional)</label>
+        <label class="wish-photo-label" for="wishPhoto1">Photo (optional, image files only)</label>
         <input id="wishPhoto1" class="wish-photo-input" type="file" accept="image/*">
         <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
         <button class="remove-photo" type="button" hidden>Remove photo</button>
@@ -289,7 +289,7 @@ canvas{width:100%;height:100%}
       <div class="wish-item-card">
         <label for="wishItem2">Wishlist item 2 · Required</label>
         <input id="wishItem2" class="wish-item" type="text" maxlength="160" placeholder="Add another gift idea" required>
-        <label class="wish-photo-label" for="wishPhoto2">Photo (optional)</label>
+        <label class="wish-photo-label" for="wishPhoto2">Photo (optional, image files only)</label>
         <input id="wishPhoto2" class="wish-photo-input" type="file" accept="image/*">
         <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
         <button class="remove-photo" type="button" hidden>Remove photo</button>
@@ -297,7 +297,7 @@ canvas{width:100%;height:100%}
       <div class="wish-item-card">
         <label for="wishItem3">Wishlist item 3 · Required</label>
         <input id="wishItem3" class="wish-item" type="text" maxlength="160" placeholder="Add another gift idea" required>
-        <label class="wish-photo-label" for="wishPhoto3">Photo (optional)</label>
+        <label class="wish-photo-label" for="wishPhoto3">Photo (optional, image files only)</label>
         <input id="wishPhoto3" class="wish-photo-input" type="file" accept="image/*">
         <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
         <button class="remove-photo" type="button" hidden>Remove photo</button>
@@ -441,6 +441,7 @@ const MEMBER_PHOTOS = {
 const n = MEMBERS.length;
 const MAX_WISHLIST_ITEMS = 100;
 const MAX_WISHLIST_PHOTOS = 6;
+const MAX_WISHLIST_PHOTO_PIXELS = 40000000;
 
 const $ = id => document.getElementById(id);
 const store = {
@@ -705,17 +706,25 @@ async function compressWishlistPhoto(file){
  if(!file || !file.type.startsWith("image/")) throw new Error("Please choose an image file.");
  if(file.size > 10 * 1024 * 1024) throw new Error("Choose an image smaller than 10 MB.");
  const bitmap = await createImageBitmap(file);
- const scale = Math.min(1,420 / Math.max(bitmap.width,bitmap.height));
- const canvas = document.createElement("canvas");
- canvas.width = Math.max(1,Math.round(bitmap.width * scale));
- canvas.height = Math.max(1,Math.round(bitmap.height * scale));
- canvas.getContext("2d").drawImage(bitmap,0,0,canvas.width,canvas.height);
+ if(bitmap.width * bitmap.height > MAX_WISHLIST_PHOTO_PIXELS){
  bitmap.close();
- for(const quality of [.78,.68,.58,.48]){
- const data = canvas.toDataURL("image/jpeg",quality);
- if(data.length <= 100000) return data;
+ throw new Error("Choose an image with 40 megapixels or fewer to preserve its original resolution.");
  }
- throw new Error("That photo could not be compressed enough. Please choose a smaller image.");
+ const canvas = document.createElement("canvas");
+ canvas.width = bitmap.width;
+ canvas.height = bitmap.height;
+ const context = canvas.getContext("2d");
+ if(!context){
+ bitmap.close();
+ throw new Error("This browser could not process the selected image.");
+ }
+ context.drawImage(bitmap,0,0);
+ bitmap.close();
+ for(const quality of [.9,.84,.78,.72,.66,.6,.54,.48,.42,.36,.3,.24]){
+ const data = canvas.toDataURL("image/jpeg",quality);
+ if(data.length <= 150000) return data;
+ }
+ throw new Error("This image is too detailed to save at its original resolution. Choose a smaller image.");
 }
 
 function attachWishlistPhoto(card){
@@ -778,7 +787,7 @@ function addWishlistItem(focus=true){
  const photoLabel = document.createElement("label");
  photoLabel.className = "wish-photo-label";
  photoLabel.htmlFor = "wishPhoto" + number;
- photoLabel.textContent = "Photo (optional)";
+ photoLabel.textContent = "Photo (optional, image files only)";
  const photoInput = document.createElement("input");
  photoInput.id = photoLabel.htmlFor;
  photoInput.className = "wish-photo-input";

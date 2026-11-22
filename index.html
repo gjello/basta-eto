@@ -621,8 +621,7 @@ function allWishlistsDone(){
 
 function updateAuthInstruction(){
  const name = MEMBERS[selectedMember];
- const hasEnteredPin = $("authPin").value.length > 0;
- $("authInstruction").textContent = pinClaims[name] || hasEnteredPin
+ $("authInstruction").textContent = pinClaims[name]
   ? "Enter your 4-digit PIN"
   : "First time? Choose a 4-digit PIN. The first person to set a PIN claims this name; use the same PIN next time.";
 }
@@ -937,7 +936,6 @@ async function submitAuthCard(event){
 
 $("authPin").addEventListener("input",() => {
  $("authError").textContent = "";
- updateAuthInstruction();
  updateAuthSubmit();
  maybeSubmitAuthPin();
 });

@@ -458,7 +458,7 @@ canvas{width:100%;height:100%}
   <div class="auth-loading-overlay hidden" id="authLoadingOverlay" role="status" aria-live="polite">
     <div class="auth-loading-card">
       <span class="auth-spinner" aria-hidden="true"></span>
-      <span>Loading your wishlist…</span>
+      <span id="authLoadingText">Loading your wishlist…</span>
     </div>
   </div>
   <div class="photo-preview-overlay" id="photoPreviewOverlay" hidden>
@@ -1053,6 +1053,7 @@ async function submitAuthCard(event){
  const button = $("authSubmit");
  button.disabled = true;
  $("authError").textContent = "";
+ $("authLoadingText").textContent = hasSpun(MEMBERS[index]) ? "Loading to your Result" : "Loading your wishlist…";
  $("authLoadingOverlay").classList.remove("hidden");
  try{
   const session = await apiRequest("auth",{method:"POST",body:{member:MEMBERS[index],pin}});
@@ -1064,6 +1065,7 @@ async function submitAuthCard(event){
    return;
   }
   myRecord = record;
+  if(record.drawDone === true) $("authLoadingText").textContent = "Loading to your Result";
   resultRecord = myRecord.result || null;
   closeAuthCard();
   beginSelectedMember(index);

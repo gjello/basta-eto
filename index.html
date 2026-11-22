@@ -76,7 +76,9 @@ button.green{background:linear-gradient(100deg,#36ba8a,var(--green));color:#0628
 button.ghost{background:transparent;color:var(--mute);border:1px solid var(--line);font-weight:500}
 button:disabled{opacity:.45;cursor:not-allowed}
 .hidden{display:none}
-.auth-overlay{position:fixed;inset:0;top:var(--auth-viewport-top,0px);bottom:auto;height:var(--auth-viewport-height,100vh);z-index:10;display:grid;place-items:center;overflow-y:auto;padding:max(12px,env(safe-area-inset-top,0px)) 16px max(12px,env(safe-area-inset-bottom,0px));background:rgba(8,6,13,.44);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);animation:overlay-in .24s ease both}
+.auth-backdrop{position:fixed;inset:0;z-index:9;background:rgba(8,6,13,.44);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);animation:overlay-in .24s ease both}
+.auth-backdrop.hidden{display:none}
+.auth-overlay{position:fixed;inset:0;top:var(--auth-viewport-top,0px);bottom:auto;height:var(--auth-viewport-height,100vh);z-index:10;display:grid;place-items:center;overflow-y:auto;padding:max(12px,env(safe-area-inset-top,0px)) 16px max(12px,env(safe-area-inset-bottom,0px));background:transparent;animation:overlay-in .24s ease both}
 .auth-overlay.hidden{display:none}
 @keyframes overlay-in{from{opacity:0}to{opacity:1}}
 .auth-card{--edge-one:var(--red);--edge-two:var(--purple);position:relative;width:min(560px,100%);max-height:calc(var(--auth-viewport-height,100svh) - 24px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(20px,4vw,32px);border:1px solid transparent;border-radius:26px;background:linear-gradient(145deg,rgba(35,30,46,.78),rgba(19,17,26,.84)) padding-box,linear-gradient(125deg,var(--edge-one),var(--edge-two)) border-box;box-shadow:0 30px 100px rgba(0,0,0,.52);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);animation:auth-pop .42s cubic-bezier(.18,.9,.24,1.15) both}
@@ -380,6 +382,7 @@ canvas{width:100%;height:100%}
     </section>
   </div>
 
+  <div class="auth-backdrop hidden" id="authBackdrop" aria-hidden="true"></div>
   <div class="auth-overlay hidden" id="authOverlay">
     <section class="auth-card" id="authCard" role="dialog" aria-modal="true" aria-labelledby="authName">
       <div class="auth-layout">
@@ -450,7 +453,7 @@ const store = {
 };
 
 // Private member records are available only through the Netlify server function.
-let wishes = {}, spins = {};
+let wishes = {}, spins = {}, pinClaims = {};
 const SESSION_KEY = "gx2-session";
 const API_URL = "/.netlify/functions/api";
 let myRecord = null, resultRecord = null;
@@ -512,6 +515,11 @@ async function refreshWishes(){
     name,
     data.spins && data.spins[name] === true
   ]));
+  pinClaims = Object.fromEntries(MEMBERS.map(name => [
+    name,
+    data.claimed && data.claimed[name] === true
+  ]));
+  if(!$("authOverlay").classList.contains("hidden")) updateAuthInstruction();
   loaded = true;
   setSyncStatus("connected");
   updateAuthSubmit();
@@ -611,6 +619,14 @@ function allWishlistsDone(){
  return loaded && MEMBERS.every(hasWishlist);
 }
 
+function updateAuthInstruction(){
+ const name = MEMBERS[selectedMember];
+ const hasEnteredPin = $("authPin").value.length > 0;
+ $("authInstruction").textContent = pinClaims[name] || hasEnteredPin
+  ? "Enter your 4-digit PIN"
+  : "First time? Choose a 4-digit PIN. The first person to set a PIN claims this name; use the same PIN next time.";
+}
+
 function syncAuthViewport(){
  const viewport = window.visualViewport;
  const top = viewport ? viewport.offsetTop : 0;
@@ -647,15 +663,16 @@ function openAuthCard(index){
  photo.hidden = !MEMBER_PHOTOS[name];
  if(MEMBER_PHOTOS[name]) photo.src = MEMBER_PHOTOS[name];
  $("authPhotoPlaceholder").hidden = !!MEMBER_PHOTOS[name];
- $("authInstruction").textContent = "First time? Choose a 4-digit PIN. The first person to set a PIN claims this name; use the same PIN next time.";
  $("authPinLabel").textContent = "Your 4-digit PIN";
  $("authPin").value = "";
+ updateAuthInstruction();
  $("authPin").placeholder = "••••";
  $("authError").textContent = loaded ? "" : "Loading saved member details…";
  $("authSubmit").textContent = "Continue";
  $("authSubmit").disabled = true;
  document.querySelectorAll(".name-card").forEach((item,i) => item.setAttribute("aria-pressed",String(i===index)));
  $("selectionHint").textContent = name+" selected";
+ $("authBackdrop").classList.remove("hidden");
  $("authOverlay").classList.remove("hidden");
  card.scrollTop = 0;
  authSubmitting = false;
@@ -666,6 +683,7 @@ function openAuthCard(index){
 }
 
 function closeAuthCard(){
+ $("authBackdrop").classList.add("hidden");
  $("authOverlay").classList.add("hidden");
  $("authPin").value = "";
  selectedMember = -1;
@@ -919,6 +937,7 @@ async function submitAuthCard(event){
 
 $("authPin").addEventListener("input",() => {
  $("authError").textContent = "";
+ updateAuthInstruction();
  updateAuthSubmit();
  maybeSubmitAuthPin();
 });

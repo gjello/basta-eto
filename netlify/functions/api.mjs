@@ -188,16 +188,52 @@ async function getSpinStatus(db) {
   return saved.data().spins || drawn;
 }
 
+async function getClaimStatus(db) {
+  const ref = statusRef(db);
+  const existing = await ref.get();
+  const savedClaims = existing.exists ? existing.data().claimed : null;
+  if (savedClaims && typeof savedClaims === "object"
+    && MEMBERS.every(name => typeof savedClaims[name] === "boolean")) {
+    return savedClaims;
+  }
+
+  const records = await Promise.all(MEMBERS.map(async name => {
+    const snapshot = await memberRef(db, name).get();
+    if (snapshot.exists) return [name, true];
+    const legacy = await legacyRef(db, name).get();
+    return [name, legacy.exists && typeof legacy.data().pin === "string" && legacy.data().pin.length > 0];
+  }));
+  const detected = Object.fromEntries(records);
+  await db.runTransaction(async transaction => {
+    const snapshot = await transaction.get(ref);
+    const data = snapshot.exists ? snapshot.data() : {};
+    const claimed = Object.fromEntries(MEMBERS.map(name => [
+      name,
+      (data.claimed && data.claimed[name] === true) || detected[name] === true
+    ]));
+    transaction.set(ref, {
+      ...data,
+      claimed,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+  const saved = await ref.get();
+  return saved.data().claimed || detected;
+}
+
 async function updateStatus(db, name, wish) {
   const ref = statusRef(db);
   await db.runTransaction(async transaction => {
     const snapshot = await transaction.get(ref);
     const data = snapshot.exists ? snapshot.data() : {};
     const members = { ...(data.members || {}) };
+    const claimed = { ...(data.claimed || {}) };
     members[name] = hasWish(wish);
+    claimed[name] = true;
     transaction.set(ref, {
       ...data,
       members,
+      claimed,
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
   });
@@ -280,7 +316,8 @@ export async function handler(event) {
     if (event.httpMethod === "GET" && action === "status") {
       const members = await getStatus(db);
       const spins = await getSpinStatus(db);
-      return json(200, { members, spins });
+      const claimed = await getClaimStatus(db);
+      return json(200, { members, spins, claimed });
     }
 
     if (event.httpMethod === "POST" && action === "auth") {

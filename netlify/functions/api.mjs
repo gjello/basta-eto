@@ -154,13 +154,52 @@ async function getStatus(db) {
   return saved.data().members || members;
 }
 
+async function getSpinStatus(db) {
+  const ref = statusRef(db);
+  const existing = await ref.get();
+  const savedSpins = existing.exists ? existing.data().spins : null;
+  if (savedSpins && typeof savedSpins === "object"
+    && MEMBERS.every(name => typeof savedSpins[name] === "boolean")) {
+    return savedSpins;
+  }
+
+  const records = await Promise.all(MEMBERS.map(async name => {
+    const snapshot = await memberRef(db, name).get();
+    if (snapshot.exists) return [name, snapshot.data().drawDone === true];
+    const legacy = await legacyRef(db, name).get();
+    return [name, legacy.exists && legacy.data().drawDone === true];
+  }));
+  const drawn = Object.fromEntries(records);
+  await db.runTransaction(async transaction => {
+    const snapshot = await transaction.get(ref);
+    const data = snapshot.exists ? snapshot.data() : {};
+    const spins = Object.fromEntries(MEMBERS.map(name => [
+      name,
+      (data.spins && typeof data.spins === "object" && data.spins[name] === true)
+        || drawn[name] === true
+    ]));
+    transaction.set(ref, {
+      ...data,
+      spins,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+  });
+  const saved = await ref.get();
+  return saved.data().spins || drawn;
+}
+
 async function updateStatus(db, name, wish) {
   const ref = statusRef(db);
   await db.runTransaction(async transaction => {
     const snapshot = await transaction.get(ref);
-    const members = snapshot.exists ? (snapshot.data().members || {}) : {};
+    const data = snapshot.exists ? snapshot.data() : {};
+    const members = { ...(data.members || {}) };
     members[name] = hasWish(wish);
-    transaction.set(ref, { members, updatedAt: FieldValue.serverTimestamp() });
+    transaction.set(ref, {
+      ...data,
+      members,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
   });
 }
 
@@ -239,7 +278,9 @@ export async function handler(event) {
     const db = getDb();
     const action = event.queryStringParameters?.action || readBody(event).action;
     if (event.httpMethod === "GET" && action === "status") {
-      return json(200, { members: await getStatus(db) });
+      const members = await getStatus(db);
+      const spins = await getSpinStatus(db);
+      return json(200, { members, spins });
     }
 
     if (event.httpMethod === "POST" && action === "auth") {
@@ -307,11 +348,27 @@ export async function handler(event) {
       }
       const ownIndex = MEMBERS.indexOf(member);
       const recipient = MEMBERS[assignmentFor(ownIndex)];
-      const [recipientItems, latestOwnSnapshot] = await Promise.all([getWishlist(db, recipient), ownRef.get()]);
+      const recipientItems = await getWishlist(db, recipient);
       if (!hasWish(recipientItems.map(item => item.text).join("\n"))) return json(409, { error: "The recipient wishlist is unavailable." });
-      if (!latestOwnSnapshot.data().drawDone) {
-        await ownRef.update({ drawDone: true, updatedAt: FieldValue.serverTimestamp() });
-      }
+      const publicStatusRef = statusRef(db);
+      await db.runTransaction(async transaction => {
+        const [latestOwnSnapshot, statusSnapshot] = await Promise.all([
+          transaction.get(ownRef),
+          transaction.get(publicStatusRef)
+        ]);
+        if (!latestOwnSnapshot.exists || !hasWish(latestOwnSnapshot.data().wish)) {
+          throw Object.assign(new Error("Save your wishlist before drawing."), { statusCode: 409 });
+        }
+        const data = statusSnapshot.exists ? statusSnapshot.data() : {};
+        const currentSpins = data.spins && typeof data.spins === "object" ? data.spins : {};
+        const spins = { ...currentSpins, [member]: true };
+        transaction.update(ownRef, { drawDone: true, updatedAt: FieldValue.serverTimestamp() });
+        transaction.set(publicStatusRef, {
+          ...data,
+          spins,
+          updatedAt: FieldValue.serverTimestamp()
+        }, { merge: true });
+      });
       return json(200, { recipient, items: recipientItems, wish: recipientItems.map(item => item.text).join("\n") });
     }
 

@@ -39,15 +39,12 @@ h1 .exchange{background:linear-gradient(100deg,var(--red),var(--purple) 52%,var(
 p.sub{color:var(--mute);margin:0 0 24px;line-height:1.55}
 .card{min-width:0;background:linear-gradient(145deg,rgba(31,27,40,.94),rgba(21,19,28,.96));border:1px solid var(--line);border-radius:24px;padding:clamp(20px,4vw,32px);margin-bottom:16px;box-shadow:0 24px 80px rgba(0,0,0,.24);backdrop-filter:blur(16px);animation:card-in .5s cubic-bezier(.2,.8,.2,1) both}
 @keyframes card-in{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
-.pick-head{position:relative;min-height:88px;margin-bottom:24px;padding-top:48px;text-align:center}
+.pick-head{min-height:0;margin-bottom:24px;text-align:center}
 .pick-title{font-size:1.2rem;font-weight:700;letter-spacing:-.02em;margin:0 0 6px}
 .pick-note{font-size:.9rem;color:var(--mute);margin:0}
-.status-shortcut{position:absolute;top:0;right:0;width:auto;margin:0;padding:10px 13px;border:1px solid rgba(72,214,160,.3);background:rgba(72,214,160,.08);color:var(--ink);font-size:.82rem}
+.status-shortcut{display:block;width:auto;margin:14px auto 0;padding:10px 16px;border:1px solid rgba(72,214,160,.3);background:rgba(72,214,160,.08);color:var(--ink);font-size:.82rem}
 .status-shortcut[hidden],.status-back[hidden]{display:none}
 .status-back{width:auto;margin:0 0 16px;padding:9px 13px;font-size:.84rem}
-.wheel-preview-link{position:absolute;top:0;left:0;display:block;width:auto;max-width:48%;margin:0;padding:10px 13px;background:rgba(168,121,255,.1);border:1px solid rgba(168,121,255,.35);color:var(--ink);font-size:.82rem}
-.wheel-preview-card .wheelbox{width:min(420px,100%)}
-.wheel-preview-result{min-height:1.5em;margin:12px 0 0;color:var(--mute)}
 .picker-header{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;min-height:48px;margin-bottom:12px}
 .back-title{position:static;grid-column:1;grid-row:1;justify-self:start;transform:none;width:auto;max-width:100%;margin:0;padding:10px 14px;background:rgba(255,255,255,.045);border:1px solid var(--line);color:var(--mute);font-size:.84rem}
 .picker-header .brand{grid-column:2;grid-row:1;margin:0;white-space:nowrap}
@@ -165,7 +162,7 @@ canvas{width:100%;height:100%}
 .remove-photo{width:auto;margin:6px 0 0;padding:6px 9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--mute);font-size:.76rem}
 .receipt-note{margin:0 0 14px;color:#ffd9a1;font-size:.86rem;font-weight:700}
 .wishlist-result{display:grid;gap:12px}
-.result-wish-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card2);text-align:left;overflow-wrap:anywhere}
+.result-wish-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:var(--card2);text-align:left;overflow-wrap:anywhere}
 .result-wish-item img{width:min(120px,24vw);max-height:110px;object-fit:contain;border-radius:10px}
 .result-wish-item img[hidden]{display:none}
 .wish-item-card.extra{position:relative;padding-right:42px}
@@ -193,9 +190,8 @@ canvas{width:100%;height:100%}
  #exchangeApp>h1{font-size:clamp(1.8rem,8vw,2.4rem)}
  p.sub{margin-bottom:18px}
  .card{padding:20px 14px;border-radius:20px}
- .pick-head{min-height:88px;padding:48px 0 0;margin-bottom:20px;text-align:center}
- .status-shortcut{top:0;right:0;padding:9px 11px;font-size:.78rem}
- .wheel-preview-link{top:0;left:0;max-width:48%;padding:9px 11px;font-size:.78rem;white-space:nowrap}
+ .pick-head{margin-bottom:20px}
+ .status-shortcut{margin-top:12px;padding:9px 11px;font-size:.78rem}
  .name-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
  .name-card{min-height:52px;padding:12px 6px;border-radius:13px;font-size:.91rem;overflow-wrap:anywhere}
  .selection-hint{margin-top:14px}
@@ -271,20 +267,10 @@ canvas{width:100%;height:100%}
       <div class="pick-head">
         <p class="pick-title">Find Your Name</p>
         <p class="pick-note">Choose your name to continue</p>
-        <button class="wheel-preview-link" id="openWheelPreview" type="button">Preview Wheel</button>
-        <button class="status-shortcut" id="statusShortcut" type="button">Wishlist status</button>
+        <button class="status-shortcut" id="statusShortcut" type="button" disabled>Wishlist Status</button>
       </div>
       <div class="name-grid" id="nameGrid" role="group" aria-label="Choose your name"></div>
       <p class="selection-hint" id="selectionHint" aria-live="polite">Choose your name to continue</p>
-    </div>
-
-    <div class="card wheel-preview-card hidden" id="sPreview">
-      <p class="pick-title">Name wheel preview</p>
-      <p class="pick-note">Try a spin for fun. This preview does not save or change gift assignments.</p>
-      <div class="wheelbox"><div class="ptr"></div><canvas id="wheelPreview" width="640" height="640"></canvas></div>
-      <button id="spinPreview" class="green" type="button">SPIN PREVIEW</button>
-      <p class="wheel-preview-result" id="previewResult" aria-live="polite">Ready for a practice spin</p>
-      <button class="ghost back" type="button">Back to names</button>
     </div>
 
     <div class="card hidden" id="sWish">
@@ -324,17 +310,17 @@ canvas{width:100%;height:100%}
 
     <div class="card hidden" id="sWait">
     <button class="ghost status-back" id="statusBackToNames" type="button" hidden>← Back to names</button>
-    <p class="lab">Your wishlist is saved ✅</p>
-    <p style="margin:6px 0 0">Track who has added a wishlist. Select any name to see their profile.</p>
-    <div class="bar"><i id="barFill"></i></div>
+    <p class="lab" id="statusTitle">Wishlist Status</p>
+    <p id="statusDescription" style="margin:6px 0 0">Track who has added a wishlist. Select any name to see their profile.</p>
+    <div class="bar" id="wishlistProgressBar"><i id="barFill"></i></div>
     <p class="sub" style="margin:0 0 8px" id="count"></p>
     <div class="status-groups">
       <section class="status-group">
-        <h2 class="status-group-heading done">Wishlist done <span class="status-count" id="doneCount">0</span></h2>
+        <h2 class="status-group-heading done"><span id="statusDoneLabel">Wishlist done</span> <span class="status-count" id="doneCount">0</span></h2>
         <div class="status-grid" id="doneMembers"></div>
       </section>
       <section class="status-group">
-        <h2 class="status-group-heading pending">Not yet <span class="status-count" id="pendingCount">0</span></h2>
+        <h2 class="status-group-heading pending"><span id="statusPendingLabel">Not yet</span> <span class="status-count" id="pendingCount">0</span></h2>
         <div class="status-grid" id="pendingMembers"></div>
       </section>
     </div>
@@ -463,7 +449,7 @@ const store = {
 };
 
 // Private member records are available only through the Netlify server function.
-let wishes = {};
+let wishes = {}, spins = {};
 const SESSION_KEY = "gx2-session";
 const API_URL = "/.netlify/functions/api";
 let myRecord = null, resultRecord = null;
@@ -494,8 +480,8 @@ async function apiRequest(action,{method="GET",body=null,authenticated=false}={}
 }
 
 // ----- UI -----
-const SCREENS = ["sPick","sPreview","sWish","sWait","sReady","sWheel","sRes"];
-let me = -1, current = "", others = [], authed = false, loaded = false, wheelReady = false, statusShortcut = false, wishlistShortcut = false, authSubmitting = false;
+const SCREENS = ["sPick","sWish","sWait","sReady","sWheel","sRes"];
+let me = -1, current = "", others = [], authed = false, loaded = false, wheelReady = false, statusShortcut = false, statusMode = "wishlist", wishlistShortcut = false, authSubmitting = false;
 let appActive = false, restoringNavigation = false, lastShownNavigation = null;
 const appNavigationStack = [];
 let enterTransitionTimer = 0;
@@ -520,6 +506,10 @@ async function refreshWishes(){
   wishes = Object.fromEntries(MEMBERS.map(name => [
     name,
     {hasWishlist:data.members && data.members[name] === true}
+  ]));
+  spins = Object.fromEntries(MEMBERS.map(name => [
+    name,
+    data.spins && data.spins[name] === true
   ]));
   loaded = true;
   setSyncStatus("connected");
@@ -589,7 +579,9 @@ function renderMemberStatus(containerId,names,status){
  if(!names.length){
   const empty = document.createElement("p");
   empty.className = "status-empty";
-  empty.textContent = status === "done" ? "No completed wishlists yet." : "Everyone is done!";
+  empty.textContent = status === "done"
+   ? (statusMode === "spin" ? "No one has spun yet." : "No completed wishlists yet.")
+   : (statusMode === "spin" ? "Everyone has spun!" : "Everyone is done!");
   container.append(empty);
   return;
  }
@@ -610,8 +602,17 @@ function hasWishlist(name){
  return !!(wishes[name] && wishes[name].hasWishlist);
 }
 
+function hasSpun(name){
+ return spins[name] === true;
+}
+
+function allWishlistsDone(){
+ return loaded && MEMBERS.every(hasWishlist);
+}
+
 function openAuthCard(index){
  statusShortcut = false;
+ statusMode = "wishlist";
  wishlistShortcut = false;
  selectedMember = index;
  const name = MEMBERS[index];
@@ -932,16 +933,6 @@ document.addEventListener("keydown",event => {
  if(event.key === "Escape" && photoPreviewOpen) closePhotoPreview();
 });
 
-$("openWheelPreview").addEventListener("click",() => {
- previewRotation = 0;
- $("wheelPreview").style.transition = "none";
- $("wheelPreview").style.transform = "rotate(0deg)";
- $("spinPreview").disabled = false;
- $("previewResult").textContent = "Ready for a practice spin";
- drawWheel("wheelPreview",MEMBERS.map((_,index)=>index));
- show("sPreview");
-});
-
 $("continueToWheel").addEventListener("click",() => {
  wheelReady = true;
  render();
@@ -964,6 +955,7 @@ window.addEventListener("offline",() => {
 
 $("statusShortcut").addEventListener("click",() => {
  statusShortcut = true;
+ statusMode = allWishlistsDone() ? "spin" : "wishlist";
  render();
 });
 $("statusBackToNames").addEventListener("click",() => {
@@ -996,7 +988,7 @@ $("enter").addEventListener("click",() => {
 
  function navigationSnapshot(screen){
   return {
-   screen,me,authed,selectedMember,statusShortcut,wishlistShortcut,wheelReady
+   screen,me,authed,selectedMember,statusShortcut,statusMode,wishlistShortcut,wheelReady
   };
  }
 
@@ -1007,6 +999,7 @@ $("enter").addEventListener("click",() => {
   selectedMember = -1;
   authed = false;
   statusShortcut = false;
+  statusMode = "wishlist";
   wishlistShortcut = false;
   wheelReady = false;
   myRecord = resultRecord = null;
@@ -1031,6 +1024,7 @@ $("enter").addEventListener("click",() => {
   selectedMember = -1;
   authed = false;
   statusShortcut = false;
+  statusMode = "wishlist";
   wishlistShortcut = false;
   wheelReady = false;
   myRecord = resultRecord = null;
@@ -1074,6 +1068,7 @@ $("enter").addEventListener("click",() => {
   authed = previous.authed;
   selectedMember = previous.selectedMember;
   statusShortcut = previous.statusShortcut;
+  statusMode = previous.statusMode;
   wishlistShortcut = previous.wishlistShortcut;
   wheelReady = previous.wheelReady;
   if(!authed){
@@ -1151,6 +1146,9 @@ function desired(){
 }
 
 function render(){
+  const statusButton = $("statusShortcut");
+  statusButton.textContent = allWishlistsDone() ? "Spin Status" : "Wishlist Status";
+  statusButton.disabled = !loaded;
   const d = desired();
   if(d !== current){
     if(d === "sWheel"){ others = MEMBERS.map((_,i)=>i).filter(i=>i!==me); resetWheel(); drawWheel(); }
@@ -1161,15 +1159,26 @@ function render(){
     $("ownWishlistPreview").textContent = wishlistItemsFromRecord(myRecord).map(item => item.text).filter(Boolean).join("\n") || "No wishlist items found.";
   }
   if(current === "sWait"){
-    const p = pendingList(), doneMembers = MEMBERS.filter(name => hasWishlist(name));
+    const isSpinStatus = statusShortcut && statusMode === "spin";
+    const doneMembers = MEMBERS.filter(isSpinStatus ? hasSpun : hasWishlist);
+    const p = MEMBERS.filter(name => !doneMembers.includes(name));
     const done = doneMembers.length;
-    $("count").textContent = done + " of " + n + " are done";
+    $("statusTitle").textContent = isSpinStatus ? "Spin Status" : "Wishlist Status";
+    $("statusDescription").textContent = isSpinStatus
+      ? "See who has spun the wheel and chosen a name."
+      : "Track who has added a wishlist. Select any name to see their profile.";
+    $("statusDoneLabel").textContent = isSpinStatus ? "Done spinning" : "Wishlist done";
+    $("statusPendingLabel").textContent = isSpinStatus ? "Not yet spun" : "Not yet";
+    $("wishlistProgressBar").hidden = isSpinStatus;
+    $("count").textContent = isSpinStatus
+      ? done + " of " + n + " have spun"
+      : done + " of " + n + " are done";
     $("barFill").style.width = (done/n*100) + "%";
     $("doneCount").textContent = done;
     $("pendingCount").textContent = p.length;
     renderMemberStatus("doneMembers",doneMembers,"done");
     renderMemberStatus("pendingMembers",p,"pending");
-    $("editMyWishlist").hidden = !authed || hasResult(MEMBERS[me]);
+    $("editMyWishlist").hidden = isSpinStatus || !authed || hasResult(MEMBERS[me]);
   }
 }
 
@@ -1273,23 +1282,6 @@ function drawWheel(canvasId="wheel",participants=others){
   x.beginPath(); x.arc(R,R,26,0,7); x.fillStyle = "#f4eefc"; x.fill();
 }
 
-let previewRotation = 0;
-$("spinPreview").onclick = () => {
-  const participants = MEMBERS.map((_,index)=>index);
-  const chosen = Math.floor(Math.random()*participants.length);
-  const slice = 360/participants.length;
-  previewRotation += 360*5 - (chosen+.5)*slice + (Math.random()-.5)*slice*.6;
-  $("spinPreview").disabled = true;
-  $("previewResult").textContent = "The wheel is spinning…";
-  const canvas = $("wheelPreview");
-  canvas.style.transition = "transform 4.5s cubic-bezier(.12,.62,.1,1)";
-  canvas.style.transform = "rotate(" + previewRotation + "deg)";
-  setTimeout(() => {
-    $("previewResult").textContent = "Practice spin: " + MEMBERS[participants[chosen]] + " (no assignment saved)";
-    $("spinPreview").disabled = false;
-  },4600);
-};
-
 $("spin").onclick = async () => {
   $("spin").disabled = true; $("backWheel").disabled = true;
   try{
@@ -1308,6 +1300,7 @@ $("spin").onclick = async () => {
     $("backWheel").disabled = false;
     return;
   }
+  spins[MEMBERS[me]] = true;
   rot = 360*7 - (k+.5)*a + (Math.random()-.5)*a*.6;
   const c = $("wheel");
   const banner = $("wheelNameBanner");

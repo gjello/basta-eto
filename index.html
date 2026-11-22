@@ -95,13 +95,29 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .auth-eyebrow{margin:0 0 8px;color:var(--mute);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
 .auth-name{margin:0 0 20px;text-align:center;font-size:clamp(2.2rem,6vw,3.3rem);line-height:1.1;overflow-wrap:anywhere}
 .auth-instruction{margin:0 0 10px;color:var(--mute);font-size:.9rem}
-.auth-pin{letter-spacing:.45em!important;-webkit-text-security:disc}
+.auth-pin{letter-spacing:.45em!important;padding-right:54px}
+.auth-pin-wrap{position:relative}
+.auth-pin-toggle{position:absolute;top:50%;right:5px;z-index:1;display:grid;place-items:center;width:44px;height:44px;margin:0;padding:9px;transform:translateY(-50%);border:0;border-radius:10px;background:transparent;color:var(--mute)}
+.auth-pin-toggle svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.auth-pin-toggle .eye-closed{display:none}
+.auth-pin-toggle[aria-pressed="true"] .eye-open{display:none}
+.auth-pin-toggle[aria-pressed="true"] .eye-closed{display:block}
+.auth-pin-toggle:not(:disabled):hover,.auth-pin-toggle:not(:disabled):active{transform:translateY(-50%);box-shadow:none}
 .auth-error{min-height:1.3em;margin:7px 0 0;color:var(--red);font-size:.83rem}
 .auth-actions{display:flex;gap:10px;margin-top:7px}
 .auth-actions button{margin-top:8px}
 .auth-cancel{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--mute)}
 .auth-card[data-group="boys"] .auth-actions button:not(.auth-cancel){background:linear-gradient(100deg,#36ba8a,#4b91ff)}
 .auth-card[data-group="girls"] .auth-actions button:not(.auth-cancel){background:linear-gradient(100deg,#a879ff,#ff5268)}
+.pin-step-overlay{position:fixed;inset:0;z-index:12;display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));background:rgba(8,6,13,.48);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:overlay-in .2s ease both}
+.pin-step-overlay.hidden{display:none}
+.pin-step-card{width:min(420px,100%);padding:24px;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:0 24px 80px rgba(0,0,0,.58);text-align:center}
+.pin-step-card h2{margin:0 0 10px;font-size:1.35rem}
+.pin-step-card p{margin:0;color:var(--mute);font-size:.9rem;line-height:1.55}
+.pin-step-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}
+.pin-step-actions button{min-height:46px;margin:0}
+.pin-step-actions .ghost{background:transparent;color:var(--mute);border:1px solid var(--line)}
+.pin-reveal-value{margin:18px 0!important;padding:16px;border:1px solid rgba(168,121,255,.32);border-radius:14px;background:var(--card2);color:var(--ink)!important;font-size:clamp(1.7rem,8vw,2.4rem);font-weight:800;letter-spacing:.32em;font-variant-numeric:tabular-nums}
 .status-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px;text-align:left}
 .status-group{padding:18px;border:1px solid rgba(255,255,255,.09);border-radius:18px;background:rgba(255,255,255,.025)}
 .status-group-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 13px;font-size:.95rem;font-weight:750}
@@ -148,7 +164,7 @@ canvas{width:100%;height:100%}
 .ptr{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:24px solid var(--ink);z-index:2}
 .big{font-size:1.9rem;font-weight:700;color:var(--green);margin:6px 0 14px}
 .wish{white-space:pre-wrap;text-align:left;background:var(--card2);border:1px dashed var(--line);border-radius:12px;padding:14px;margin:0}
-.own-wishlist-preview{white-space:pre-line;min-height:84px;margin:12px 0 18px;padding:16px;border:1px solid rgba(168,121,255,.28);border-radius:16px;background:linear-gradient(145deg,rgba(168,121,255,.09),rgba(72,214,160,.045));color:var(--ink);text-align:left;line-height:1.75}
+.own-wishlist-preview{margin:12px 0 18px}
 .lab{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 0 6px}
 .budget{display:inline-block;background:var(--red);color:#fff;font-weight:700;border-radius:999px;padding:6px 16px;margin:4px 0 12px;font-size:1.05rem}
 .budget{background:linear-gradient(100deg,#ff4257 0%,#a65cff 34%,#20b879 68%,#318bff 100%);border:1px solid rgba(255,255,255,.4);box-shadow:0 5px 22px rgba(153,89,255,.25),0 0 18px rgba(36,188,153,.14);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
@@ -218,7 +234,6 @@ canvas{width:100%;height:100%}
  .status-groups{gap:12px}
  .status-grid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
  .status-back{margin-bottom:12px}
- .own-wishlist-preview{padding:13px}
  .wheel-name-banner{min-height:100px;padding:14px}
  .wheel-banner-name{font-size:clamp(1.2rem,6vw,1.65rem)}
  .card{margin-bottom:12px}
@@ -255,7 +270,7 @@ canvas{width:100%;height:100%}
 
   <div id="exchangeApp" class="hidden">
     <div class="picker-header">
-      <button class="back-title" id="backToTitle" type="button">← Back to title</button>
+      <button class="back-title" id="backToTitle" type="button">Back</button>
       <div class="brand">Oliver Family</div>
     </div>
     <p class="sync-status" id="syncStatus" data-state="connecting" role="status" aria-live="polite">
@@ -307,7 +322,7 @@ canvas{width:100%;height:100%}
     </div>
     <button class="add-item" id="addWishItem" type="button">＋ Add more</button>
     <button id="saveWish" disabled>Save my wishlist</button>
-    <button class="ghost back">Not me</button>
+    <button class="ghost back">Back</button>
     </div>
 
     <div class="card hidden" id="sWait">
@@ -327,17 +342,17 @@ canvas{width:100%;height:100%}
       </section>
     </div>
     <button class="ghost" id="editMyWishlist" type="button">View / edit my wishlist</button>
-    <button class="ghost back">Not me</button>
+    <button class="ghost back">Back</button>
     </div>
 
     <div class="card hidden" id="sReady">
     <p class="lab">Everyone is ready, <span class="meName"></span>!</p>
     <p class="pick-title">Your wishlist</p>
     <p class="pick-note">Take a quick look at your saved picks before the wheel.</p>
-    <p class="own-wishlist-preview" id="ownWishlistPreview"></p>
+    <div class="wishlist-result own-wishlist-preview" id="ownWishlistPreview"></div>
     <button class="ghost" id="editWishlistBeforeWheel" type="button">Edit my wishlist</button>
     <button id="continueToWheel" class="green" type="button">Continue to the wheel</button>
-    <button class="ghost back" type="button">Not me</button>
+    <button class="ghost back" type="button">Back</button>
     </div>
 
     <div class="card hidden" id="sWheel">
@@ -351,7 +366,7 @@ canvas{width:100%;height:100%}
       </div>
     </div>
     <button id="spin" class="green">SPIN 🎁</button>
-    <button class="ghost back" id="backWheel">Not me</button>
+    <button class="ghost back" id="backWheel">Back</button>
     </div>
 
     <div class="card hidden" id="sRes">
@@ -367,7 +382,7 @@ canvas{width:100%;height:100%}
     <p class="receipt-note">Receipt is required.</p>
     <div class="wishlist-result" id="wish"></div>
     <p class="sub" style="margin:14px 0 0">Keep it a secret until the party! 🤫</p>
-    <button class="ghost back">Not me</button>
+    <button class="ghost back">Back</button>
     </div>
   </div>
 
@@ -396,14 +411,41 @@ canvas{width:100%;height:100%}
           <p class="auth-instruction" id="authInstruction"></p>
           <form id="authForm" autocomplete="off">
             <label class="lab" id="authPinLabel" for="authPin">4-digit PIN</label>
-            <input class="auth-pin" id="authPin" name="member-access-code" type="text" inputmode="numeric" maxlength="4" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="••••" pattern="[0-9]{4}" required>
+            <div class="auth-pin-wrap">
+              <input class="auth-pin" id="authPin" name="member-access-code" type="password" inputmode="numeric" maxlength="4" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="••••" pattern="[0-9]{4}" required>
+              <button class="auth-pin-toggle" id="authPinToggle" type="button" aria-label="Show PIN" aria-pressed="false">
+                <svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"></path><path d="M10.6 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.1 3.8M6.3 6.3C3.6 8.1 2 12 2 12s3.6 7 10 7a10.7 10.7 0 0 0 4.1-.8"></path></svg>
+              </button>
+            </div>
             <p class="auth-error" id="authError" aria-live="polite"></p>
             <div class="auth-actions">
               <button type="submit" id="authSubmit">Continue</button>
-              <button type="button" class="auth-cancel" id="authCancel">Not me</button>
+              <button type="button" class="auth-cancel" id="authCancel">Back</button>
             </div>
           </form>
         </div>
+      </div>
+    </section>
+  </div>
+  <div class="pin-step-overlay hidden" id="pinConfirmOverlay">
+    <section class="pin-step-card" role="alertdialog" aria-modal="true" aria-labelledby="pinConfirmTitle" aria-describedby="pinConfirmMessage">
+      <h2 id="pinConfirmTitle">Are you sure?</h2>
+      <p id="pinConfirmMessage">If yes, cover your screen. I'm about to show you your entered PIN.</p>
+      <div class="pin-step-actions">
+        <button class="ghost" id="pinConfirmNo" type="button">No</button>
+        <button id="pinConfirmYes" type="button">Yes</button>
+      </div>
+    </section>
+  </div>
+  <div class="pin-step-overlay hidden" id="pinRevealOverlay">
+    <section class="pin-step-card" role="dialog" aria-modal="true" aria-labelledby="pinRevealTitle">
+      <h2 id="pinRevealTitle">Remember your PIN</h2>
+      <p>Your new 4-digit PIN is:</p>
+      <p class="pin-reveal-value" id="pinRevealValue"></p>
+      <div class="pin-step-actions">
+        <button class="ghost" id="pinRevealBack" type="button">Back</button>
+        <button id="rememberPin" type="button">Remember this PIN</button>
       </div>
     </section>
   </div>
@@ -485,7 +527,7 @@ async function apiRequest(action,{method="GET",body=null,authenticated=false}={}
 
 // ----- UI -----
 const SCREENS = ["sPick","sWish","sWait","sReady","sWheel","sRes"];
-let me = -1, current = "", others = [], authed = false, loaded = false, wheelReady = false, statusShortcut = false, statusMode = "wishlist", wishlistShortcut = false, authSubmitting = false;
+let me = -1, current = "", others = [], authed = false, loaded = false, wheelReady = false, statusShortcut = false, statusMode = "wishlist", wishlistShortcut = false, authSubmitting = false, pinSetupConfirmed = false, pinConfirmationOpen = false, pendingNewPin = "";
 let appActive = false, restoringNavigation = false, lastShownNavigation = null;
 const appNavigationStack = [];
 let enterTransitionTimer = 0;
@@ -650,6 +692,67 @@ if(window.visualViewport){
 }
 syncAuthViewport();
 
+function setAuthPinVisibility(visible){
+ const input = $("authPin"), button = $("authPinToggle");
+ input.type = visible ? "text" : "password";
+ button.setAttribute("aria-label",visible ? "Hide PIN" : "Show PIN");
+ button.setAttribute("aria-pressed",String(visible));
+}
+
+function setAuthDialogInert(inert){
+ const overlay = $("authOverlay");
+ overlay.inert = inert;
+ overlay.setAttribute("aria-hidden",String(inert));
+}
+
+function openPinConfirmation(){
+ const pin = $("authPin").value;
+ if(pinConfirmationOpen || !/^\d{4}$/.test(pin)) return;
+ if(pinSetupConfirmed && pendingNewPin === pin) return;
+ pinSetupConfirmed = false;
+ pinConfirmationOpen = true;
+ pendingNewPin = pin;
+ setAuthPinVisibility(false);
+ $("authPin").blur();
+ setAuthDialogInert(true);
+ $("pinConfirmOverlay").classList.remove("hidden");
+ $("pinConfirmNo").focus({preventScroll:true});
+}
+
+function closePinConfirmation(refocus = true){
+ $("pinConfirmOverlay").classList.add("hidden");
+ pinConfirmationOpen = false;
+ pendingNewPin = "";
+ setAuthDialogInert(false);
+ if(refocus) $("authPin").focus({preventScroll:true});
+}
+
+function revealNewPin(){
+ if(!pinConfirmationOpen || pendingNewPin !== $("authPin").value) return;
+ $("pinConfirmOverlay").classList.add("hidden");
+ pinConfirmationOpen = false;
+ $("pinRevealValue").textContent = pendingNewPin;
+ setAuthDialogInert(true);
+ $("pinRevealOverlay").classList.remove("hidden");
+ $("rememberPin").focus({preventScroll:true});
+}
+
+function cancelPinReveal(refocus = true){
+ $("pinRevealOverlay").classList.add("hidden");
+ pinSetupConfirmed = false;
+ pendingNewPin = "";
+ setAuthDialogInert(false);
+ if(refocus) $("authPin").focus({preventScroll:true});
+}
+
+function rememberNewPin(){
+ if(pendingNewPin !== $("authPin").value || !/^\d{4}$/.test(pendingNewPin)) return;
+ pinSetupConfirmed = true;
+ $("pinRevealOverlay").classList.add("hidden");
+ setAuthDialogInert(false);
+ $("authForm").requestSubmit();
+}
+
 function openAuthCard(index){
  statusShortcut = false;
  statusMode = "wishlist";
@@ -664,6 +767,13 @@ function openAuthCard(index){
  $("authPhotoPlaceholder").hidden = !!MEMBER_PHOTOS[name];
  $("authPinLabel").textContent = "Your 4-digit PIN";
  $("authPin").value = "";
+ setAuthPinVisibility(false);
+ pinSetupConfirmed = false;
+ pinConfirmationOpen = false;
+ pendingNewPin = "";
+ $("pinConfirmOverlay").classList.add("hidden");
+ $("pinRevealOverlay").classList.add("hidden");
+ setAuthDialogInert(false);
  updateAuthInstruction();
  $("authPin").placeholder = "••••";
  $("authError").textContent = loaded ? "" : "Loading saved member details…";
@@ -682,9 +792,16 @@ function openAuthCard(index){
 }
 
 function closeAuthCard(){
+ $("pinConfirmOverlay").classList.add("hidden");
+ $("pinRevealOverlay").classList.add("hidden");
+ setAuthDialogInert(false);
  $("authBackdrop").classList.add("hidden");
  $("authOverlay").classList.add("hidden");
  $("authPin").value = "";
+ setAuthPinVisibility(false);
+ pinSetupConfirmed = false;
+ pinConfirmationOpen = false;
+ pendingNewPin = "";
  selectedMember = -1;
  authSubmitting = false;
  document.querySelectorAll(".name-card").forEach(item => item.setAttribute("aria-pressed","false"));
@@ -900,7 +1017,8 @@ function updateAuthSubmit(){
 
 function maybeSubmitAuthPin(){
  if(loaded && !$("authOverlay").classList.contains("hidden") && /^\d{4}$/.test($("authPin").value)){
-  $("authForm").requestSubmit();
+  if(pinClaims[MEMBERS[selectedMember]] || (pinSetupConfirmed && pendingNewPin === $("authPin").value)) $("authForm").requestSubmit();
+  else openPinConfirmation();
  }
 }
 
@@ -910,6 +1028,10 @@ async function submitAuthCard(event){
  const pin = $("authPin").value, index = selectedMember;
  if(index < 0 || !/^\d{4}$/.test(pin)) return;
  if(!loaded){ $("authError").textContent = "Still loading. Please try again."; return; }
+ if(!pinClaims[MEMBERS[index]] && (!pinSetupConfirmed || pendingNewPin !== pin)){
+  openPinConfirmation();
+  return;
+ }
  authSubmitting = true;
  const button = $("authSubmit");
  button.disabled = true;
@@ -940,12 +1062,25 @@ $("authPin").addEventListener("input",() => {
  maybeSubmitAuthPin();
 });
 $("authForm").addEventListener("submit",submitAuthCard);
+$("authPinToggle").addEventListener("click",() => setAuthPinVisibility($("authPin").type === "password"));
+$("pinConfirmNo").addEventListener("click",() => closePinConfirmation());
+$("pinConfirmYes").addEventListener("click",revealNewPin);
+$("pinRevealBack").addEventListener("click",() => cancelPinReveal());
+$("rememberPin").addEventListener("click",rememberNewPin);
 $("authCancel").addEventListener("click",closeAuthCard);
 $("authOverlay").addEventListener("click",event => {
  if(event.target === $("authOverlay")) closeAuthCard();
 });
 document.addEventListener("keydown",event => {
- if(event.key === "Escape" && !$("authOverlay").classList.contains("hidden")) closeAuthCard();
+ if(event.key === "Escape" && !$("pinRevealOverlay").classList.contains("hidden")){
+  cancelPinReveal();
+  event.preventDefault();
+ }
+ else if(event.key === "Escape" && !$("pinConfirmOverlay").classList.contains("hidden")){
+  closePinConfirmation();
+  event.preventDefault();
+ }
+ else if(event.key === "Escape" && !$("authOverlay").classList.contains("hidden")) closeAuthCard();
  if(event.key === "Escape" && !$("profileOverlay").classList.contains("hidden")) closeProfile();
 });
 $("closeProfile").addEventListener("click",closeProfile);
@@ -1092,6 +1227,14 @@ $("enter").addEventListener("click",() => {
  }
 
  function handleAppBack(){
+  if(!$("pinRevealOverlay").classList.contains("hidden")){
+   cancelPinReveal();
+   return;
+  }
+  if(!$("pinConfirmOverlay").classList.contains("hidden")){
+   closePinConfirmation();
+   return;
+  }
   if(!$("authOverlay").classList.contains("hidden")){
    closeAuthCard();
    return;
@@ -1210,7 +1353,7 @@ function render(){
     show(d);
   }
   if(current === "sReady"){
-    $("ownWishlistPreview").textContent = wishlistItemsFromRecord(myRecord).map(item => item.text).filter(Boolean).join("\n") || "No wishlist items found.";
+    renderWishlistItems($("ownWishlistPreview"),wishlistItemsFromRecord(myRecord));
   }
   if(current === "sWait"){
     const isSpinStatus = statusShortcut && statusMode === "spin";
@@ -1236,6 +1379,38 @@ function render(){
   }
 }
 
+function renderWishlistItems(list,items){
+ list.replaceChildren();
+ const available = Array.isArray(items) ? items.filter(item => item && item.text) : [];
+ if(!available.length){
+  const empty = document.createElement("p");
+  empty.className = "status-empty";
+  empty.textContent = "No wishlist items found.";
+  list.append(empty);
+  return;
+ }
+ available.forEach(item => {
+  const row = document.createElement("div");
+  row.className = "result-wish-item";
+  const text = document.createElement("span");
+  text.textContent = item.text;
+  row.append(text);
+  if(item.image){
+   const button = document.createElement("button");
+   button.type = "button";
+   button.className = "result-photo-button";
+   button.setAttribute("aria-label","Preview photo for " + item.text);
+   const image = document.createElement("img");
+   image.src = item.image;
+   image.alt = "";
+   button.append(image);
+   button.addEventListener("click",() => openPhotoPreview(item.image,item.text,button));
+   row.append(button);
+  }
+  list.append(row);
+ });
+}
+
 function fillResult(){
   if(!resultRecord) return;
   const name = resultRecord.recipient;
@@ -1250,29 +1425,7 @@ function fillResult(){
   const items = Array.isArray(resultRecord.items)
    ? resultRecord.items
    : String(resultRecord.wish || "").split(/\r?\n/).filter(Boolean).map(text => ({text,image:""}));
-  const list = $("wish");
-  list.replaceChildren();
-  items.forEach(item => {
-   if(!item || !item.text) return;
-   const row = document.createElement("div");
-   row.className = "result-wish-item";
-   const text = document.createElement("span");
-   text.textContent = item.text;
-   row.append(text);
-   if(item.image){
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "result-photo-button";
-    button.setAttribute("aria-label","Preview photo for " + item.text);
-    const image = document.createElement("img");
-    image.src = item.image;
-    image.alt = "";
-    button.append(image);
-    button.addEventListener("click",() => openPhotoPreview(item.image,item.text,button));
-    row.append(button);
-   }
-   list.append(row);
-  });
+  renderWishlistItems($("wish"),items);
 }
 
 document.querySelectorAll(".back").forEach(b => b.onclick = () => {

@@ -96,7 +96,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .auth-eyebrow{margin:0 0 8px;color:var(--mute);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
 .auth-name{margin:0 0 20px;text-align:center;font-size:clamp(2.2rem,6vw,3.3rem);line-height:1.1;overflow-wrap:anywhere}
 .auth-instruction{margin:0 0 10px;color:var(--mute);font-size:.9rem}
-.auth-pin{letter-spacing:.45em!important}
+.auth-pin{letter-spacing:.45em!important;-webkit-text-security:disc}
 .auth-error{min-height:1.3em;margin:7px 0 0;color:var(--red);font-size:.83rem}
 .auth-actions{display:flex;gap:10px;margin-top:7px}
 .auth-actions button{margin-top:8px}
@@ -157,6 +157,17 @@ canvas{width:100%;height:100%}
 .wish-item-card{padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));text-align:left}
 .wish-item-card label{display:block;margin:0 0 8px;color:var(--mute);font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .wish-item-card input{width:100%;margin:0;padding:12px;border-color:rgba(255,255,255,.12);background:rgba(10,8,15,.44);letter-spacing:normal;text-align:left}
+.wish-photo-label{display:block;margin:10px 0 6px;color:var(--mute);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.wish-photo-input{padding:9px;font-size:.8rem}
+.wish-photo-preview{display:block;width:min(180px,100%);max-height:150px;object-fit:contain;object-position:left center;margin-top:8px;border-radius:10px}
+.wish-photo-preview[hidden]{display:none}
+.photo-error{margin:6px 0 0;color:#ff9ca6;font-size:.78rem}
+.remove-photo{width:auto;margin:6px 0 0;padding:6px 9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--mute);font-size:.76rem}
+.receipt-note{margin:0 0 14px;color:#ffd9a1;font-size:.86rem;font-weight:700}
+.wishlist-result{display:grid;gap:12px}
+.result-wish-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card2);text-align:left;overflow-wrap:anywhere}
+.result-wish-item img{width:min(120px,24vw);max-height:110px;object-fit:contain;border-radius:10px}
+.result-wish-item img[hidden]{display:none}
 .wish-item-card.extra{position:relative;padding-right:42px}
 .wish-item-card .remove-item{position:absolute;top:31px;right:9px;width:28px;height:28px;margin:0;padding:0;border:1px solid rgba(255,255,255,.13);border-radius:9px;background:rgba(255,255,255,.06);color:var(--mute);line-height:1}
 .add-item{width:auto;margin:10px 0 0;padding:10px 15px;border:1px dashed rgba(255,255,255,.24);background:rgba(255,255,255,.04);color:var(--ink);font-size:.88rem}
@@ -270,18 +281,31 @@ canvas{width:100%;height:100%}
     <div class="card hidden" id="sWish">
     <p class="lab">Hi, <span class="meName"></span>! Add your wishlist</p>
     <div class="budget">Budget: ₱300 Above</div>
+    <p class="receipt-note">Receipt is required.</p>
     <div class="wishlist-fields" id="wishlistFields">
       <div class="wish-item-card">
         <label for="wishItem1">Wishlist item 1 · Required</label>
         <input id="wishItem1" class="wish-item" type="text" maxlength="160" placeholder="Add one gift idea" required>
+        <label class="wish-photo-label" for="wishPhoto1">Photo (optional)</label>
+        <input id="wishPhoto1" class="wish-photo-input" type="file" accept="image/*">
+        <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
+        <button class="remove-photo" type="button" hidden>Remove photo</button>
       </div>
       <div class="wish-item-card">
         <label for="wishItem2">Wishlist item 2 · Required</label>
         <input id="wishItem2" class="wish-item" type="text" maxlength="160" placeholder="Add another gift idea" required>
+        <label class="wish-photo-label" for="wishPhoto2">Photo (optional)</label>
+        <input id="wishPhoto2" class="wish-photo-input" type="file" accept="image/*">
+        <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
+        <button class="remove-photo" type="button" hidden>Remove photo</button>
       </div>
       <div class="wish-item-card">
         <label for="wishItem3">Wishlist item 3 · Required</label>
         <input id="wishItem3" class="wish-item" type="text" maxlength="160" placeholder="Add another gift idea" required>
+        <label class="wish-photo-label" for="wishPhoto3">Photo (optional)</label>
+        <input id="wishPhoto3" class="wish-photo-input" type="file" accept="image/*">
+        <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
+        <button class="remove-photo" type="button" hidden>Remove photo</button>
       </div>
     </div>
     <button class="add-item" id="addWishItem" type="button">＋ Add more</button>
@@ -305,6 +329,7 @@ canvas{width:100%;height:100%}
         <div class="status-grid" id="pendingMembers"></div>
       </section>
     </div>
+    <button class="ghost" id="editMyWishlist" type="button">View / edit my wishlist</button>
     <button class="ghost back">Not me</button>
     </div>
 
@@ -313,6 +338,7 @@ canvas{width:100%;height:100%}
     <p class="pick-title">Your wishlist</p>
     <p class="pick-note">Take a quick look at your saved picks before the wheel.</p>
     <p class="own-wishlist-preview" id="ownWishlistPreview"></p>
+    <button class="ghost" id="editWishlistBeforeWheel" type="button">Edit my wishlist</button>
     <button id="continueToWheel" class="green" type="button">Continue to the wheel</button>
     <button class="ghost back" type="button">Not me</button>
     </div>
@@ -340,8 +366,9 @@ canvas{width:100%;height:100%}
       </div>
       <h2 class="recipient-name" id="target"></h2>
     </div>
-    <p class="lab">Their wishlist (budget ₱300 above)</p>
-    <p class="wish" id="wish"></p>
+    <p class="lab">Their wishlist · Budget ₱300 above</p>
+    <p class="receipt-note">Receipt is required.</p>
+    <div class="wishlist-result" id="wish"></div>
     <p class="sub" style="margin:14px 0 0">Keep it a secret until the party! 🤫</p>
     <button class="ghost back">Not me</button>
     </div>
@@ -369,9 +396,9 @@ canvas{width:100%;height:100%}
           <p class="auth-eyebrow">Oliver Family · Member access</p>
           <h2 class="auth-name" id="authName"></h2>
           <p class="auth-instruction" id="authInstruction"></p>
-          <form id="authForm">
+          <form id="authForm" autocomplete="off">
             <label class="lab" id="authPinLabel" for="authPin">4-digit PIN</label>
-            <input class="auth-pin" id="authPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" pattern="[0-9]{4}" required>
+            <input class="auth-pin" id="authPin" name="member-access-code" type="text" inputmode="numeric" maxlength="4" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="••••" pattern="[0-9]{4}" required>
             <p class="auth-error" id="authError" aria-live="polite"></p>
             <div class="auth-actions">
               <button type="submit" id="authSubmit">Continue</button>
@@ -410,6 +437,8 @@ const MEMBER_PHOTOS = {
  "Zowie":"Zowie.jpg"
 };
 const n = MEMBERS.length;
+const MAX_WISHLIST_ITEMS = 100;
+const MAX_WISHLIST_PHOTOS = 6;
 
 const $ = id => document.getElementById(id);
 const store = {
@@ -450,7 +479,10 @@ async function apiRequest(action,{method="GET",body=null,authenticated=false}={}
 
 // ----- UI -----
 const SCREENS = ["sPick","sPreview","sWish","sWait","sReady","sWheel","sRes"];
-let me = -1, current = "", others = [], authed = false, loaded = false, wheelReady = false, statusShortcut = false;
+let me = -1, current = "", others = [], authed = false, loaded = false, wheelReady = false, statusShortcut = false, wishlistShortcut = false, authSubmitting = false;
+let appActive = false, restoringNavigation = false, lastShownNavigation = null;
+const appNavigationStack = [];
+let enterTransitionTimer = 0;
 let statusTimer = 0;
 
 function setSyncStatus(state,error){
@@ -476,6 +508,7 @@ async function refreshWishes(){
   loaded = true;
   setSyncStatus("connected");
   updateAuthSubmit();
+  maybeSubmitAuthPin();
   render();
 }
 
@@ -563,6 +596,7 @@ function hasWishlist(name){
 
 function openAuthCard(index){
  statusShortcut = false;
+ wishlistShortcut = false;
  selectedMember = index;
  const name = MEMBERS[index];
  const card = $("authCard"), photo = $("authPhoto");
@@ -581,6 +615,7 @@ function openAuthCard(index){
  document.querySelectorAll(".name-card").forEach((item,i) => item.setAttribute("aria-pressed",String(i===index)));
  $("selectionHint").textContent = name+" selected";
  $("authOverlay").classList.remove("hidden");
+ authSubmitting = false;
  setTimeout(() => $("authPin").focus({preventScroll:true}),80);
 }
 
@@ -588,6 +623,7 @@ function closeAuthCard(){
  $("authOverlay").classList.add("hidden");
  $("authPin").value = "";
  selectedMember = -1;
+ authSubmitting = false;
  document.querySelectorAll(".name-card").forEach(item => item.setAttribute("aria-pressed","false"));
  $("selectionHint").textContent = "Choose your name to continue";
 }
@@ -596,7 +632,7 @@ function beginSelectedMember(index){
  me = index; authed = true;
  wheelReady = false;
  document.querySelectorAll(".meName").forEach(e => e.textContent = MEMBERS[me]);
- if(!myRecord || !myRecord.wish) resetWishlistInputs();
+ populateWishlistInputs();
  $("saveWish").disabled = true;
  current = "";
  render();
@@ -605,20 +641,136 @@ function beginSelectedMember(index){
 function resetWishlistInputs(){
  $("wishlistFields").querySelectorAll(".extra").forEach(card => card.remove());
  $("wishlistFields").querySelectorAll(".wish-item").forEach(input => { input.value = ""; });
+ $("wishlistFields").querySelectorAll(".wish-photo-input").forEach(input => {
+   input.value = "";
+   input.dataset.photoData = "";
+   const card = input.closest(".wish-item-card");
+   const preview = card.querySelector(".wish-photo-preview");
+   preview.removeAttribute("src");
+   preview.hidden = true;
+   card.querySelector(".remove-photo").hidden = true;
+ });
 }
 
-function addWishlistItem(){
+function wishlistItemsFromRecord(record){
+ if(Array.isArray(record && record.wishlistItems)){
+ return record.wishlistItems.filter(item => item && typeof item.text === "string")
+  .map(item => ({text:item.text,image:typeof item.image === "string" ? item.image : ""}));
+ }
+ return String(record && record.wish || "").split(/\r?\n/).map(text => text.trim()).filter(Boolean)
+ .map(text => ({text,image:""}));
+}
+
+function showWishlistItemPhoto(card,image){
+ const input = card.querySelector(".wish-photo-input"), preview = card.querySelector(".wish-photo-preview");
+ input.dataset.photoData = image || "";
+ preview.hidden = !image;
+ if(image) preview.src = image;
+ else preview.removeAttribute("src");
+ card.querySelector(".remove-photo").hidden = !image;
+}
+
+function populateWishlistInputs(){
+ resetWishlistInputs();
+ updateAddWishlistButton();
+ const items = wishlistItemsFromRecord(myRecord);
+ items.forEach((item,index) => {
+ if(index >= MAX_WISHLIST_ITEMS) return;
+ if(index >= 3) addWishlistItem(false);
+ const card = $("wishlistFields").querySelectorAll(".wish-item-card")[index];
+ card.querySelector(".wish-item").value = item.text;
+ showWishlistItemPhoto(card,item.image);
+ });
+ updateAddWishlistButton();
+}
+
+async function compressWishlistPhoto(file){
+ if(!file || !file.type.startsWith("image/")) throw new Error("Please choose an image file.");
+ if(file.size > 10 * 1024 * 1024) throw new Error("Choose an image smaller than 10 MB.");
+ const bitmap = await createImageBitmap(file);
+ const scale = Math.min(1,420 / Math.max(bitmap.width,bitmap.height));
+ const canvas = document.createElement("canvas");
+ canvas.width = Math.max(1,Math.round(bitmap.width * scale));
+ canvas.height = Math.max(1,Math.round(bitmap.height * scale));
+ canvas.getContext("2d").drawImage(bitmap,0,0,canvas.width,canvas.height);
+ bitmap.close();
+ for(const quality of [.78,.68,.58,.48]){
+ const data = canvas.toDataURL("image/jpeg",quality);
+ if(data.length <= 100000) return data;
+ }
+ throw new Error("That photo could not be compressed enough. Please choose a smaller image.");
+}
+
+function attachWishlistPhoto(card){
+ const input = card.querySelector(".wish-photo-input");
+ const remove = card.querySelector(".remove-photo");
+ const error = document.createElement("p");
+ error.className = "photo-error";
+ card.insertBefore(error,remove);
+ input.addEventListener("change",async () => {
+ const file = input.files && input.files[0];
+ if(!file) return;
+ input.disabled = true;
+ updateSaveWishButton();
+ try{
+  const photoCount = [...document.querySelectorAll(".wish-photo-input")].filter(photoInput => photoInput.dataset.photoData).length;
+  if(!input.dataset.photoData && photoCount >= MAX_WISHLIST_PHOTOS){
+   throw new Error("You can attach photos to up to 6 wishlist items.");
+  }
+  const image = await compressWishlistPhoto(file);
+  showWishlistItemPhoto(card,image);
+  error.textContent = "";
+ }catch(error){
+  input.value = "";
+  showWishlistItemPhoto(card,"");
+  card.querySelector(".photo-error").textContent = error.message || "Could not read that photo.";
+ }finally{
+  input.disabled = false;
+  updateSaveWishButton();
+ }
+ });
+ remove.addEventListener("click",() => {
+ input.value = "";
+ showWishlistItemPhoto(card,"");
+ error.textContent = "";
+ updateSaveWishButton();
+ });
+}
+
+document.querySelectorAll(".wish-item-card").forEach(attachWishlistPhoto);
+
+function addWishlistItem(focus=true){
+ const existingCards = $("wishlistFields").querySelectorAll(".wish-item-card").length;
+ if(existingCards >= MAX_WISHLIST_ITEMS){
+ setSyncStatus("error",new Error("You can add up to 100 wishlist items."));
+ return;
+ }
  const number = $("wishlistFields").querySelectorAll(".wish-item").length + 1;
  const card = document.createElement("div");
  card.className = "wish-item-card extra";
  const label = document.createElement("label");
  label.textContent = "Wishlist item " + number + " · Optional";
  const input = document.createElement("input");
+ input.id = "wishItem" + number;
  input.className = "wish-item";
  input.type = "text";
  input.maxLength = 160;
  input.placeholder = "Add another gift idea";
  input.setAttribute("aria-label",label.textContent);
+ label.htmlFor = input.id;
+ const photoLabel = document.createElement("label");
+ photoLabel.className = "wish-photo-label";
+ photoLabel.htmlFor = "wishPhoto" + number;
+ photoLabel.textContent = "Photo (optional)";
+ const photoInput = document.createElement("input");
+ photoInput.id = photoLabel.htmlFor;
+ photoInput.className = "wish-photo-input";
+ photoInput.type = "file";
+ photoInput.accept = "image/*";
+ const preview = document.createElement("img");
+ preview.className = "wish-photo-preview";
+ preview.alt = "Wishlist item photo preview";
+ preview.hidden = true;
  const remove = document.createElement("button");
  remove.className = "remove-item";
  remove.type = "button";
@@ -629,10 +781,17 @@ function addWishlistItem(){
   renumberExtraItems();
   updateSaveWishButton();
  });
- card.append(label,input,remove);
+ const removePhoto = document.createElement("button");
+ removePhoto.className = "remove-photo";
+ removePhoto.type = "button";
+ removePhoto.textContent = "Remove photo";
+ removePhoto.hidden = true;
+ card.append(label,input,photoLabel,photoInput,preview,removePhoto,remove);
+ attachWishlistPhoto(card);
  $("wishlistFields").append(card);
  input.addEventListener("input",updateSaveWishButton);
- input.focus();
+ updateAddWishlistButton();
+ if(focus) input.focus();
 }
 
 function renumberExtraItems(){
@@ -640,47 +799,74 @@ function renumberExtraItems(){
   const label = card.querySelector("label"), input = card.querySelector("input");
   label.textContent = "Wishlist item " + (index + 4) + " · Optional";
   input.setAttribute("aria-label",label.textContent);
+  input.id = "wishItem" + (index + 4);
+  label.htmlFor = input.id;
+  const photoLabel = card.querySelector(".wish-photo-label"), photoInput = card.querySelector(".wish-photo-input");
+  photoLabel.htmlFor = "wishPhoto" + (index + 4);
+  photoInput.id = photoLabel.htmlFor;
  });
+ updateAddWishlistButton();
 }
 
 function updateSaveWishButton(){
- $("saveWish").disabled = !okForm();
+ $("saveWish").disabled = !okForm() || [...$("wishlistFields").querySelectorAll(".wish-photo-input")].some(input => input.disabled);
+}
+
+function updateAddWishlistButton(){
+ $("addWishItem").disabled = $("wishlistFields").querySelectorAll(".wish-item-card").length >= MAX_WISHLIST_ITEMS;
 }
 
 function collectWishlistItems(){
- return [...$("wishlistFields").querySelectorAll(".wish-item")]
-  .map(input => input.value.trim())
-  .filter(Boolean);
+ return [...$("wishlistFields").querySelectorAll(".wish-item-card")].map(card => ({
+  text:card.querySelector(".wish-item").value.trim(),
+  image:card.querySelector(".wish-photo-input").dataset.photoData || ""
+ })).filter(item => item.text);
 }
 
 function updateAuthSubmit(){
  $("authSubmit").disabled = !loaded || !/^\d{4}$/.test($("authPin").value);
 }
 
+function maybeSubmitAuthPin(){
+ if(loaded && !$("authOverlay").classList.contains("hidden") && /^\d{4}$/.test($("authPin").value)){
+  $("authForm").requestSubmit();
+ }
+}
+
 async function submitAuthCard(event){
  event.preventDefault();
+ if(authSubmitting) return;
  const pin = $("authPin").value, index = selectedMember;
  if(index < 0 || !/^\d{4}$/.test(pin)) return;
  if(!loaded){ $("authError").textContent = "Still loading. Please try again."; return; }
+ authSubmitting = true;
  const button = $("authSubmit");
  button.disabled = true;
  $("authError").textContent = "";
  try{
   const session = await apiRequest("auth",{method:"POST",body:{member:MEMBERS[index],pin}});
+  if(selectedMember !== index || $("authOverlay").classList.contains("hidden")) return;
   store.set(SESSION_KEY,session.token);
-  myRecord = await apiRequest("me",{authenticated:true});
+  const record = await apiRequest("me",{authenticated:true});
+  if(selectedMember !== index || $("authOverlay").classList.contains("hidden")){
+   store.set(SESSION_KEY,"");
+   return;
+  }
+  myRecord = record;
   resultRecord = myRecord.result || null;
   closeAuthCard();
   beginSelectedMember(index);
  }catch(error){
   $("authError").textContent = error.message || "Could not check your PIN. Please try again.";
   button.disabled = false;
+  authSubmitting = false;
  }
 }
 
 $("authPin").addEventListener("input",() => {
  $("authError").textContent = "";
  updateAuthSubmit();
+ maybeSubmitAuthPin();
 });
 $("authForm").addEventListener("submit",submitAuthCard);
 $("authCancel").addEventListener("click",closeAuthCard);
@@ -710,6 +896,14 @@ $("continueToWheel").addEventListener("click",() => {
  wheelReady = true;
  render();
 });
+$("editMyWishlist").addEventListener("click",() => {
+ wishlistShortcut = true;
+ render();
+});
+$("editWishlistBeforeWheel").addEventListener("click",() => {
+ wishlistShortcut = true;
+ render();
+});
 $("retrySync").addEventListener("click",connectWishes);
 window.addEventListener("online",() => {
  connectWishes();
@@ -723,14 +917,19 @@ $("statusShortcut").addEventListener("click",() => {
  render();
 });
 $("statusBackToNames").addEventListener("click",() => {
- statusShortcut = false;
- render();
+ resetToNamePicker();
 });
 
 $("enter").addEventListener("click",() => {
+ if(appActive) return;
+ appActive = true;
+ appNavigationStack.length = 0;
+ lastShownNavigation = null;
+ history.pushState({exchangeBack:true},"",location.href);
  const welcome = $("welcome");
  welcome.classList.add("welcome-leaving");
- setTimeout(() => {
+ enterTransitionTimer = setTimeout(() => {
+   enterTransitionTimer = 0;
    welcome.classList.add("hidden");
    const app = $("exchangeApp");
    app.classList.remove("hidden");
@@ -740,25 +939,116 @@ $("enter").addEventListener("click",() => {
  },380);
 });
 
- $("backToTitle").addEventListener("click",() => {
-  if(!$("authOverlay").classList.contains("hidden")) closeAuthCard();
+ $("backToTitle").addEventListener("click",() => showTitle(false));
+
+ document.querySelector("#wishlistFields").addEventListener("input",updateSaveWishButton);
+ document.querySelector("#addWishItem").addEventListener("click",addWishlistItem);
+
+ function navigationSnapshot(screen){
+  return {
+   screen,me,authed,selectedMember,statusShortcut,wishlistShortcut,wheelReady
+  };
+ }
+
+ function resetToNamePicker(){
+  appNavigationStack.length = 0;
+  lastShownNavigation = null;
   me = -1;
   selectedMember = -1;
   authed = false;
+  statusShortcut = false;
+  wishlistShortcut = false;
+  wheelReady = false;
   myRecord = resultRecord = null;
   store.set(SESSION_KEY,"");
+  document.querySelectorAll(".name-card").forEach(card => card.setAttribute("aria-pressed","false"));
+  $("selectionHint").textContent = "Choose your name to continue";
+  current = "";
+  render();
+ }
+
+ function showTitle(fromPopState){
+  if(enterTransitionTimer){
+   clearTimeout(enterTransitionTimer);
+   enterTransitionTimer = 0;
+  }
+  if(!$("authOverlay").classList.contains("hidden")) closeAuthCard();
+  if(!$("profileOverlay").classList.contains("hidden")) closeProfile();
+  appActive = false;
+  appNavigationStack.length = 0;
+  lastShownNavigation = null;
+  me = -1;
+  selectedMember = -1;
+  authed = false;
   statusShortcut = false;
+  wishlistShortcut = false;
+  wheelReady = false;
+  myRecord = resultRecord = null;
+  store.set(SESSION_KEY,"");
   current = "";
   $("exchangeApp").classList.add("hidden");
   $("exchangeApp").classList.remove("exchange-entering");
   $("welcome").classList.remove("welcome-leaving","hidden");
   $("welcome").scrollIntoView({behavior:"smooth",block:"start"});
+  if(!fromPopState) history.back();
+ }
+
+ function handleAppBack(){
+  if(!$("authOverlay").classList.contains("hidden")){
+   closeAuthCard();
+   return;
+  }
+  if(!$("profileOverlay").classList.contains("hidden")){
+   closeProfile();
+   return;
+  }
+  if(current === ""){
+   showTitle(true);
+   return;
+  }
+  if(current === "sPick"){
+   showTitle(true);
+   return;
+  }
+  if(current === "sRes"){
+   resetToNamePicker();
+   return;
+  }
+  const previous = appNavigationStack.pop();
+  if(!previous){
+   resetToNamePicker();
+   return;
+  }
+  restoringNavigation = true;
+  me = previous.me;
+  authed = previous.authed;
+  selectedMember = previous.selectedMember;
+  statusShortcut = previous.statusShortcut;
+  wishlistShortcut = previous.wishlistShortcut;
+  wheelReady = previous.wheelReady;
+  if(!authed){
+   myRecord = resultRecord = null;
+   store.set(SESSION_KEY,"");
+  }
+  current = "";
+  render();
+  restoringNavigation = false;
+ }
+
+ window.addEventListener("popstate",() => {
+  if(!appActive){
+   if(history.state && history.state.exchangeBack) history.replaceState(null,"",location.href);
+   return;
+  }
+  handleAppBack();
+  if(appActive) history.pushState({exchangeBack:true},"",location.href);
+  else if(history.state && history.state.exchangeBack) history.replaceState(null,"",location.href);
  });
 
- document.querySelector("#wishlistFields").addEventListener("input",updateSaveWishButton);
- document.querySelector("#addWishItem").addEventListener("click",addWishlistItem);
-
  function show(id){
+  if(appActive && !restoringNavigation && current && current !== id && lastShownNavigation){
+   appNavigationStack.push(lastShownNavigation);
+  }
   current = id;
   SCREENS.forEach(s => $(s).classList.toggle("hidden", s !== id));
    $("statusShortcut").hidden = id !== "sPick";
@@ -766,6 +1056,7 @@ $("enter").addEventListener("click",() => {
    const subs = {sPick:"Pick your name to get started", sWish:"Step 1: add your wishlist", sWait:"Almost there", sReady:"Review your wishlist before the wheel", sWheel:"Spin once, you only get one pick", sRes:"Your result"};
   $("sub").textContent = subs[id];
   if(id === "sRes") launchHeartConfetti();
+   if(appActive) lastShownNavigation = navigationSnapshot(id);
 }
 
 function launchHeartConfetti(){
@@ -794,6 +1085,7 @@ function desired(){
   if(statusShortcut) return "sWait";
   if(me < 0) return "sPick";
   if(!authed) return "sPick";
+  if(wishlistShortcut && !hasResult(MEMBERS[me])) return "sWish";
   if(!hasWishlist(MEMBERS[me])) return "sWish";
   if(pendingList().length) return "sWait";
   if(hasResult(MEMBERS[me])) return "sRes";
@@ -808,7 +1100,7 @@ function render(){
     show(d);
   }
   if(current === "sReady"){
-    $("ownWishlistPreview").textContent = (myRecord && myRecord.wish) || "No wishlist items found.";
+    $("ownWishlistPreview").textContent = wishlistItemsFromRecord(myRecord).map(item => item.text).filter(Boolean).join("\n") || "No wishlist items found.";
   }
   if(current === "sWait"){
     const p = pendingList(), doneMembers = MEMBERS.filter(name => hasWishlist(name));
@@ -819,6 +1111,7 @@ function render(){
     $("pendingCount").textContent = p.length;
     renderMemberStatus("doneMembers",doneMembers,"done");
     renderMemberStatus("pendingMembers",p,"pending");
+    $("editMyWishlist").hidden = !authed || hasResult(MEMBERS[me]);
   }
 }
 
@@ -833,17 +1126,30 @@ function fillResult(){
   photo.hidden = !photoUrl;
   photo.alt = photoUrl ? name : "";
   if(photoUrl) photo.src = photoUrl;
-  $("wish").textContent = resultRecord.wish || "";
+  const items = Array.isArray(resultRecord.items)
+   ? resultRecord.items
+   : String(resultRecord.wish || "").split(/\r?\n/).filter(Boolean).map(text => ({text,image:""}));
+  const list = $("wish");
+  list.replaceChildren();
+  items.forEach(item => {
+   if(!item || !item.text) return;
+   const row = document.createElement("div");
+   row.className = "result-wish-item";
+   const text = document.createElement("span");
+   text.textContent = item.text;
+   row.append(text);
+   if(item.image){
+    const image = document.createElement("img");
+    image.src = item.image;
+    image.alt = "Photo for " + item.text;
+    row.append(image);
+   }
+   list.append(row);
+  });
 }
 
 document.querySelectorAll(".back").forEach(b => b.onclick = () => {
-  me = -1; selectedMember = -1; authed = false;
-  myRecord = resultRecord = null;
-  store.set(SESSION_KEY,"");
-  statusShortcut = false;
-  document.querySelectorAll(".name-card").forEach(card => card.setAttribute("aria-pressed","false"));
-  $("selectionHint").textContent = "Choose your name to continue";
-  render();
+  resetToNamePicker();
 });
 
 const okForm = () => [...$("wishlistFields").querySelectorAll(".wish-item[required]")]
@@ -851,11 +1157,13 @@ const okForm = () => [...$("wishlistFields").querySelectorAll(".wish-item[requir
 
 $("saveWish").onclick = async () => {
   if(!okForm()) return;
-  const text = collectWishlistItems().join("\n");
+  const items = collectWishlistItems();
+  const text = items.map(item => item.text).filter(Boolean).join("\n");
   const b = $("saveWish"); b.disabled = true; b.textContent = "Saving…";
   try{
-    await apiRequest("wishlist",{method:"POST",body:{wish:text},authenticated:true});
-    myRecord = {...myRecord,wish:text};
+    await apiRequest("wishlist",{method:"POST",body:{items},authenticated:true});
+    myRecord = {...myRecord,wish:text,wishlistItems:items};
+    wishlistShortcut = false;
     await refreshWishes();
     b.textContent = "Save my wishlist";
     render();

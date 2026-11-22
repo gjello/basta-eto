@@ -4,6 +4,8 @@ The public page shows only whether each wishlist has been completed. A member mu
 
 There is no email or Google sign-in screen. The first person to choose an unclaimed name and set a PIN claims that name. Since there are no invite codes, share the site only with the intended group and ask members to set PINs only for their own names. Use a PIN that is not used for banking or other accounts. Photos and names included in the public site are visible to anyone who can open its URL.
 
+Members can save up to 100 wishlist items and attach photos to up to six of them. Photos are resized and compressed in the browser before being saved with the private member record; they are shown to that member and to their assigned gift giver after the draw.
+
 ## Important: keep direct Firestore access blocked
 
 The website's Netlify function is the only intended data access path. In Firebase Console, open **Firestore Database > Rules**, replace the rules with the contents of `firestore.rules`, and click **Publish**. These rules deny all browser access; the Netlify server accesses Firestore using its private service account. Do not use the old rules that allowed anonymous or public reads.

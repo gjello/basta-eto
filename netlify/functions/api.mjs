@@ -29,6 +29,24 @@ const statusRef = db => db.collection("public").doc("status");
 const validMember = name => MEMBERS.includes(name);
 const validWish = wish => typeof wish === "string" && wish.length <= 10000;
 const hasWish = wish => typeof wish === "string" && wish.trim().length >= 3;
+const MAX_WISHLIST_ITEMS = 100;
+const MAX_WISHLIST_PHOTOS = 6;
+const MAX_IMAGE_DATA_LENGTH = 100000;
+const normalizeItems = (items, wish) => Array.isArray(items)
+  ? items.filter(item => item && typeof item.text === "string").map(item => ({
+    text: item.text,
+    image: typeof item.image === "string" ? item.image : ""
+  }))
+  : String(wish || "").split(/\r?\n/).map(text => text.trim()).filter(Boolean).map(text => ({ text, image: "" }));
+const validItems = items => Array.isArray(items)
+  && items.length >= 3
+  && items.length <= MAX_WISHLIST_ITEMS
+  && items.slice(0, 3).every(item => item && typeof item.text === "string" && item.text.trim().length > 0 && item.text.length <= 160)
+  && items.every(item => item && typeof item.text === "string" && item.text.trim().length > 0 && item.text.length <= 160
+    && (!item.image || (typeof item.image === "string"
+      && item.image.length <= MAX_IMAGE_DATA_LENGTH
+      && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(item.image))))
+  && items.filter(item => item.image).length <= MAX_WISHLIST_PHOTOS;
 const json = (statusCode, body) => ({
   statusCode,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
@@ -41,9 +59,9 @@ const readBody = event => {
 
 async function getWishlist(db, name) {
   const current = await memberRef(db, name).get();
-  if (current.exists) return current.data().wish || "";
+  if (current.exists) return normalizeItems(current.data().wishlistItems, current.data().wish);
   const legacy = await legacyRef(db, name).get();
-  return legacy.exists && typeof legacy.data().wish === "string" ? legacy.data().wish : "";
+  return legacy.exists ? normalizeItems(null, legacy.data().wish) : [];
 }
 
 function makeSession(member, sessionVersion) {
@@ -195,6 +213,7 @@ async function authenticate(db, name, pin, ip) {
     pinHash: pinHash(pin, salt),
     sessionVersion: randomBytes(16).toString("hex"),
     wish: validWish(legacy.wish) ? legacy.wish : "",
+    wishlistItems: normalizeItems(null, validWish(legacy.wish) ? legacy.wish : ""),
     drawDone: legacy.drawDone === true,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp()
@@ -214,7 +233,7 @@ async function authenticate(db, name, pin, ip) {
 
 export async function handler(event) {
   try {
-    if (typeof event.body === "string" && event.body.length > 20000) {
+    if (typeof event.body === "string" && event.body.length > 750000) {
       return json(413, { error: "The request is too large." });
     }
     const db = getDb();
@@ -246,23 +265,31 @@ export async function handler(event) {
       const data = snapshot.data();
       if (data.drawDone === true) {
         const recipient = MEMBERS[assignmentFor(MEMBERS.indexOf(member))];
+        const items = await getWishlist(db, recipient);
         return json(200, {
           wish: data.wish || "",
+          items: normalizeItems(data.wishlistItems, data.wish),
           drawDone: true,
-          result: { recipient, wish: await getWishlist(db, recipient) }
+          result: { recipient, items, wish: items.map(item => item.text).join("\n") }
         });
       }
-      return json(200, { wish: data.wish || "", drawDone: false });
+      return json(200, {
+        wish: data.wish || "",
+        wishlistItems: normalizeItems(data.wishlistItems, data.wish),
+        drawDone: false
+      });
     }
 
     if (event.httpMethod === "POST" && action === "wishlist") {
-      const { wish } = readBody(event);
+      const { items } = readBody(event);
+      if (!validItems(items)) return json(400, { error: "Add three required wishlist items. You can add up to 100 items and attach photos to six." });
+      const wish = items.map(item => item.text.trim()).filter(Boolean).join("\n");
       if (!validWish(wish) || wish.trim().length < 3) return json(400, { error: "Please enter a valid wishlist." });
       const ref = memberRef(db, member);
       await db.runTransaction(async transaction => {
         const snapshot = await transaction.get(ref);
         if (!snapshot.exists) throw Object.assign(new Error("Member record not found. Enter your name and PIN again."), { statusCode: 404 });
-        transaction.update(ref, { wish, updatedAt: FieldValue.serverTimestamp() });
+        transaction.update(ref, { wish, wishlistItems: items, updatedAt: FieldValue.serverTimestamp() });
       });
       await updateStatus(db, member, wish);
       return json(200, { saved: true });
@@ -280,12 +307,12 @@ export async function handler(event) {
       }
       const ownIndex = MEMBERS.indexOf(member);
       const recipient = MEMBERS[assignmentFor(ownIndex)];
-      const [recipientWish, latestOwnSnapshot] = await Promise.all([getWishlist(db, recipient), ownRef.get()]);
-      if (!hasWish(recipientWish)) return json(409, { error: "The recipient wishlist is unavailable." });
+      const [recipientItems, latestOwnSnapshot] = await Promise.all([getWishlist(db, recipient), ownRef.get()]);
+      if (!hasWish(recipientItems.map(item => item.text).join("\n"))) return json(409, { error: "The recipient wishlist is unavailable." });
       if (!latestOwnSnapshot.data().drawDone) {
         await ownRef.update({ drawDone: true, updatedAt: FieldValue.serverTimestamp() });
       }
-      return json(200, { recipient, wish: recipientWish });
+      return json(200, { recipient, items: recipientItems, wish: recipientItems.map(item => item.text).join("\n") });
     }
 
     return json(404, { error: "Unknown API action." });

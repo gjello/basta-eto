@@ -76,10 +76,10 @@ button.green{background:linear-gradient(100deg,#36ba8a,var(--green));color:#0628
 button.ghost{background:transparent;color:var(--mute);border:1px solid var(--line);font-weight:500}
 button:disabled{opacity:.45;cursor:not-allowed}
 .hidden{display:none}
-.auth-overlay{position:fixed;inset:0;z-index:10;display:grid;place-items:center;overflow-y:auto;padding:max(12px,env(safe-area-inset-top,0px)) 16px max(12px,env(safe-area-inset-bottom,0px));background:rgba(8,6,13,.44);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);animation:overlay-in .24s ease both}
+.auth-overlay{position:fixed;inset:0;top:var(--auth-viewport-top,0px);bottom:auto;height:var(--auth-viewport-height,100vh);z-index:10;display:grid;place-items:center;overflow-y:auto;padding:max(12px,env(safe-area-inset-top,0px)) 16px max(12px,env(safe-area-inset-bottom,0px));background:rgba(8,6,13,.44);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);animation:overlay-in .24s ease both}
 .auth-overlay.hidden{display:none}
 @keyframes overlay-in{from{opacity:0}to{opacity:1}}
-.auth-card{--edge-one:var(--red);--edge-two:var(--purple);position:relative;width:min(560px,100%);max-height:calc(100vh - 32px);max-height:calc(100svh - 32px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(20px,4vw,32px);border:1px solid transparent;border-radius:26px;background:linear-gradient(145deg,rgba(35,30,46,.78),rgba(19,17,26,.84)) padding-box,linear-gradient(125deg,var(--edge-one),var(--edge-two)) border-box;box-shadow:0 30px 100px rgba(0,0,0,.52);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);animation:auth-pop .42s cubic-bezier(.18,.9,.24,1.15) both}
+.auth-card{--edge-one:var(--red);--edge-two:var(--purple);position:relative;width:min(560px,100%);max-height:calc(var(--auth-viewport-height,100svh) - 24px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(20px,4vw,32px);border:1px solid transparent;border-radius:26px;background:linear-gradient(145deg,rgba(35,30,46,.78),rgba(19,17,26,.84)) padding-box,linear-gradient(125deg,var(--edge-one),var(--edge-two)) border-box;box-shadow:0 30px 100px rgba(0,0,0,.52);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);animation:auth-pop .42s cubic-bezier(.18,.9,.24,1.15) both}
 .auth-card[data-group="boys"]{--edge-one:#48d6a0;--edge-two:#4b91ff}
 .auth-card[data-group="girls"]{--edge-one:#b47aff;--edge-two:#ff5268}
 @keyframes auth-pop{from{opacity:0;transform:translateY(24px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -611,6 +611,30 @@ function allWishlistsDone(){
  return loaded && MEMBERS.every(hasWishlist);
 }
 
+function syncAuthViewport(){
+ const viewport = window.visualViewport;
+ const top = viewport ? viewport.offsetTop : 0;
+ const height = viewport ? viewport.height : window.innerHeight;
+ document.documentElement.style.setProperty("--auth-viewport-top",top+"px");
+ document.documentElement.style.setProperty("--auth-viewport-height",height+"px");
+ const overlay = $("authOverlay"), pin = $("authPin");
+ if(overlay.classList.contains("hidden") || document.activeElement !== pin) return;
+ requestAnimationFrame(() => {
+  const card = $("authCard"), label = $("authPinLabel");
+  const visibleTop = top + 8, visibleBottom = top + height - 16;
+  const pinBottom = pin.getBoundingClientRect().bottom;
+  if(pinBottom > visibleBottom) card.scrollTop += pinBottom - visibleBottom;
+  const labelTop = label.getBoundingClientRect().top;
+  if(labelTop < visibleTop) card.scrollTop -= visibleTop - labelTop;
+ });
+}
+window.addEventListener("resize",syncAuthViewport);
+if(window.visualViewport){
+ window.visualViewport.addEventListener("resize",syncAuthViewport);
+ window.visualViewport.addEventListener("scroll",syncAuthViewport);
+}
+syncAuthViewport();
+
 function openAuthCard(index){
  statusShortcut = false;
  statusMode = "wishlist";
@@ -633,8 +657,12 @@ function openAuthCard(index){
  document.querySelectorAll(".name-card").forEach((item,i) => item.setAttribute("aria-pressed",String(i===index)));
  $("selectionHint").textContent = name+" selected";
  $("authOverlay").classList.remove("hidden");
+ card.scrollTop = 0;
  authSubmitting = false;
- setTimeout(() => $("authPin").focus({preventScroll:true}),80);
+ setTimeout(() => {
+  $("authPin").focus({preventScroll:true});
+  syncAuthViewport();
+ },80);
 }
 
 function closeAuthCard(){

@@ -119,6 +119,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .pin-step-actions button{min-height:46px;margin:0}
 .pin-step-actions .ghost{background:transparent;color:var(--mute);border:1px solid var(--line)}
 .pin-reveal-value{margin:18px 0!important;padding:16px;border:1px solid rgba(168,121,255,.32);border-radius:14px;background:var(--card2);color:var(--ink)!important;font-size:clamp(1.7rem,8vw,2.4rem);font-weight:800;letter-spacing:.32em;font-variant-numeric:tabular-nums}
+.auth-loading-overlay{position:fixed;inset:0;z-index:25;display:grid;place-items:center;padding:20px;background:rgba(8,6,13,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.auth-loading-overlay.hidden{display:none}
+.auth-loading-card{display:grid;justify-items:center;gap:14px;width:min(320px,100%);padding:26px;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:0 24px 80px rgba(0,0,0,.58);color:var(--ink);font-weight:700}
+.auth-spinner{width:38px;height:38px;border:4px solid rgba(255,255,255,.18);border-top-color:var(--green);border-radius:50%;animation:auth-spin .8s linear infinite}
+@keyframes auth-spin{to{transform:rotate(360deg)}}
 .status-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px;text-align:left}
 .status-group{padding:18px;border:1px solid rgba(255,255,255,.09);border-radius:18px;background:rgba(255,255,255,.025)}
 .status-group-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 13px;font-size:.95rem;font-weight:750}
@@ -450,6 +455,12 @@ canvas{width:100%;height:100%}
       </div>
     </section>
   </div>
+  <div class="auth-loading-overlay hidden" id="authLoadingOverlay" role="status" aria-live="polite">
+    <div class="auth-loading-card">
+      <span class="auth-spinner" aria-hidden="true"></span>
+      <span>Loading your wishlist…</span>
+    </div>
+  </div>
   <div class="photo-preview-overlay" id="photoPreviewOverlay" hidden>
     <section class="photo-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="photoPreviewCaption">
       <button class="photo-preview-close" id="closePhotoPreview" type="button" aria-label="Close photo preview">Close</button>
@@ -758,6 +769,7 @@ function rememberNewPin(){
 }
 
 function openAuthCard(index){
+ $("authLoadingOverlay").classList.add("hidden");
  statusShortcut = false;
  statusMode = "wishlist";
  wishlistShortcut = false;
@@ -796,6 +808,7 @@ function openAuthCard(index){
 }
 
 function closeAuthCard(){
+ $("authLoadingOverlay").classList.add("hidden");
  $("pinConfirmOverlay").classList.add("hidden");
  $("pinRevealOverlay").classList.add("hidden");
  setAuthDialogInert(false);
@@ -1040,6 +1053,7 @@ async function submitAuthCard(event){
  const button = $("authSubmit");
  button.disabled = true;
  $("authError").textContent = "";
+ $("authLoadingOverlay").classList.remove("hidden");
  try{
   const session = await apiRequest("auth",{method:"POST",body:{member:MEMBERS[index],pin}});
   if(selectedMember !== index || $("authOverlay").classList.contains("hidden")) return;
@@ -1054,6 +1068,7 @@ async function submitAuthCard(event){
   closeAuthCard();
   beginSelectedMember(index);
  }catch(error){
+  $("authLoadingOverlay").classList.add("hidden");
   $("authError").textContent = error.message || "Could not check your PIN. Please try again.";
   button.disabled = false;
   authSubmitting = false;

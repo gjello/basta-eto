@@ -4,7 +4,7 @@ The public page shows only whether each wishlist has been completed. A member mu
 
 There is no email or Google sign-in screen. The first person to choose an unclaimed name and set a PIN claims that name. Since there are no invite codes, share the site only with the intended group and ask members to set PINs only for their own names. Use a PIN that is not used for banking or other accounts. Photos and names included in the public site are visible to anyone who can open its URL.
 
-Members can save up to 100 wishlist items and attach photos to up to six of them. Image-only uploads retain their original pixel dimensions (up to 40 megapixels) and are compressed as JPEGs in the browser to fit Firestore's document-size limit before being saved with the private member record. Browser-supported image formats such as PNG are accepted and converted to JPEG; photos are shown to that member and their assigned gift giver after the draw.
+Members can save up to 100 wishlist items and attach photos to up to six of them. Image files up to 10 MB are accepted, including HEIC/HEIF, with no configured pixel-resolution limit. The browser converts photos to JPEG, compressing and scaling down only as needed to fit Firestore's document-size limit (150,000 encoded characters per photo). Photos are saved with the private member record and shown to that member and their assigned gift giver after the draw. HEIC conversion uses the locally hosted `heic2any` library in `vendor/`.
 
 ## Important: keep direct Firestore access blocked
 

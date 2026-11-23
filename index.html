@@ -185,6 +185,7 @@ canvas{width:100%;height:100%}
 .photo-error{margin:6px 0 0;color:#ff9ca6;font-size:.78rem}
 .remove-photo{width:auto;margin:6px 0 0;padding:6px 9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--mute);font-size:.76rem}
 .receipt-note{margin:0 0 14px;color:#ffd9a1;font-size:.86rem;font-weight:700}
+.cash-warning{margin:-8px 0 14px;color:#ff5268;font-size:.86rem;font-weight:800}
 .wishlist-result{display:grid;gap:12px}
 .result-wish-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:var(--card2);text-align:left;overflow-wrap:anywhere}
 .result-wish-item img{width:min(120px,24vw);max-height:110px;object-fit:contain;border-radius:10px}
@@ -300,11 +301,12 @@ canvas{width:100%;height:100%}
     <p class="lab">Hi, <span class="meName"></span>! Add your wishlist</p>
     <div class="budget">Budget: ₱300 Above</div>
     <p class="receipt-note">Receipt is required.</p>
+    <p class="cash-warning">Strictly NO CASH (Do not input Cash/Pera of any amount)</p>
     <div class="wishlist-fields" id="wishlistFields">
       <div class="wish-item-card">
         <label for="wishItem1">Wishlist item 1 · Required</label>
         <input id="wishItem1" class="wish-item" type="text" maxlength="160" placeholder="Add one gift idea" required>
-        <label class="wish-photo-label" for="wishPhoto1">Photo (optional, image files only; HEIC supported)</label>
+        <label class="wish-photo-label" for="wishPhoto1">PHOTO (OPTIONAL)</label>
         <input id="wishPhoto1" class="wish-photo-input" type="file" accept="image/*,.heic,.heif">
         <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
         <button class="remove-photo" type="button" hidden>Remove photo</button>
@@ -312,7 +314,7 @@ canvas{width:100%;height:100%}
       <div class="wish-item-card">
         <label for="wishItem2">Wishlist item 2 · Required</label>
         <input id="wishItem2" class="wish-item" type="text" maxlength="160" placeholder="Add another gift idea" required>
-        <label class="wish-photo-label" for="wishPhoto2">Photo (optional, image files only; HEIC supported)</label>
+        <label class="wish-photo-label" for="wishPhoto2">PHOTO (OPTIONAL)</label>
         <input id="wishPhoto2" class="wish-photo-input" type="file" accept="image/*,.heic,.heif">
         <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
         <button class="remove-photo" type="button" hidden>Remove photo</button>
@@ -320,7 +322,7 @@ canvas{width:100%;height:100%}
       <div class="wish-item-card">
         <label for="wishItem3">Wishlist item 3 · Required</label>
         <input id="wishItem3" class="wish-item" type="text" maxlength="160" placeholder="Add another gift idea" required>
-        <label class="wish-photo-label" for="wishPhoto3">Photo (optional, image files only; HEIC supported)</label>
+        <label class="wish-photo-label" for="wishPhoto3">PHOTO (OPTIONAL)</label>
         <input id="wishPhoto3" class="wish-photo-input" type="file" accept="image/*,.heic,.heif">
         <img class="wish-photo-preview" alt="Wishlist item photo preview" hidden>
         <button class="remove-photo" type="button" hidden>Remove photo</button>
@@ -1032,7 +1034,7 @@ function addWishlistItem(focus=true){
  const photoLabel = document.createElement("label");
  photoLabel.className = "wish-photo-label";
  photoLabel.htmlFor = "wishPhoto" + number;
- photoLabel.textContent = "Photo (optional, image files only; HEIC supported)";
+ photoLabel.textContent = "PHOTO (OPTIONAL)";
  const photoInput = document.createElement("input");
  photoInput.id = photoLabel.htmlFor;
  photoInput.className = "wish-photo-input";

@@ -14,7 +14,7 @@ function getDb() {
     throw new Error("SESSION_SECRET must be set to a random value of at least 32 characters.");
   }
   if (!serviceAccountJson) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT must be set in Netlify environment variables.");
+    throw new Error("FIREBASE_SERVICE_ACCOUNT must be set in the hosting provider's environment variables.");
   }
   if (!getApps().length) {
     initializeApp({ credential: cert(JSON.parse(serviceAccountJson)) });

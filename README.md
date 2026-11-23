@@ -56,6 +56,12 @@ The Netlify function must be deployed along with the site; a static-only drag-an
 
 Test with a non-sensitive wishlist: enter a name, set a PIN, save a wishlist, and open the public status page in another browser. That browser should see only completion status. The wishlist itself should require the name's PIN.
 
+## Deploy on Vercel
+
+Import this repository into Vercel from GitHub. Keep the project root at the repository root, choose the **Other** framework preset, and leave the build command empty. `vercel.json` publishes the root files and routes the existing API URL to the Vercel function in `api/index.mjs`.
+
+Add `FIREBASE_SERVICE_ACCOUNT` and `SESSION_SECRET` as Vercel environment variables for Production. Do not commit these values to the repository. The Firebase service-account JSON and Firestore database stay the same; only the hosting provider changes.
+
 ## Reset a name's PIN
 
 If the wrong person claims a name, an owner can reset it in **Firestore Database > Data**:
